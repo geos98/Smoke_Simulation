@@ -5,15 +5,18 @@
 
 #include "smoke_simulator.hh"
 
-void error_callback(int error, const char* description) {
+void error_callback(int error, const char *description)
+{
     puts(description);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     std::string shader_path = argv[1];
 
     glfwSetErrorCallback(error_callback);
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         return 0;
     }
     std::cout << "Init Complete" << std::endl;
@@ -34,18 +37,20 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
     // Create a GLFWwindow object
-    auto *window = glfwCreateWindow(800, 800, "Smoke Simulator", nullptr, nullptr);
+    auto *window = glfwCreateWindow(1000, 1000, "Smoke Simulator", nullptr, nullptr);
 
     std::cout << "Created window" << std::endl;
 
-    if (window == nullptr) {
+    if (window == nullptr)
+    {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return 0;
     }
     glfwMakeContextCurrent(window);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
         throw std::runtime_error("Could not initialize GLAD!");
     }
 
@@ -61,19 +66,16 @@ int main(int argc, char** argv) {
     glfwSwapBuffers(window);
 
     // Create a nanogui screen
-    auto* screen = new nanogui::Screen();
-    screen->initialize(window, true);
-    std::cout << "Created screen" << std::endl;
-
-    screen->setVisible(true);
-    screen->performLayout();
-
+    auto *screen = new nanogui::Screen();
     std::cout << "Completed Initialization" << std::endl;
 
-    SmokeSimulator sim(shader_path, screen);
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    SmokeSimulator sim(shader_path, screen, window);
+    sim.initGUI();
 
-    while (!glfwWindowShouldClose(window)) {
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+
+    while (!glfwWindowShouldClose(window))
+    {
         glfwPollEvents();
 
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
