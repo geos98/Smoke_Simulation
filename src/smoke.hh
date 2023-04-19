@@ -1,4 +1,5 @@
 #include <nanogui/nanogui.h>
+
 #include "emittor.hh"
 
 using namespace nanogui;
@@ -12,7 +13,7 @@ public:
     ~Smoke(){};
 
     vector<Particle> particles;
-    Emittor *emittor;
 
+    void generateParticles(Emittor *emittor, int num_particles);
     void update(double delta_t);
 };

@@ -8,15 +8,15 @@ class Emittor
 {
 
 public:
-    Emittor(Vector3f position, Vector3f init_velocity, double speed)
+    Emittor(Vector3f position, Vector3f init_velocity, Vector4f init_color)
     {
         this->position = position;
-        this->speed = speed;
         this->init_velocity = init_velocity;
+        this->init_color = init_color;
     }
     Vector3f position;
     Vector3f init_velocity;
-    double speed;
+    Vector4f init_color;
 
     Particle emit();
 };
