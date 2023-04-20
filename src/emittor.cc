@@ -1,5 +1,7 @@
 #include "emittor.hh"
 
+using namespace nanogui;
+
 Particle Emittor::emit()
 {
     double a = (((double)rand() / (double)RAND_MAX) - 0.5);

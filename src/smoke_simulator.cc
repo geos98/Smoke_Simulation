@@ -1,11 +1,12 @@
 #include <nanogui/nanogui.h>
 #include "smoke_simulator.hh"
 
+using namespace std;
 using namespace nanogui;
 
-SmokeSimulator::SmokeSimulator(std::string shader_dir, nanogui::Screen *screen, GLFWwindow *window)
+SmokeSimulator::SmokeSimulator(string shader_dir, nanogui::Screen *screen, GLFWwindow *window)
 {
-    shader = std::make_shared<nanogui::GLShader>();
+    shader = make_shared<nanogui::GLShader>();
     shader->initFromFiles("Default",
                           shader_dir + "/point.vert",
                           shader_dir + "/point.frag");

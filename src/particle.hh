@@ -1,13 +1,10 @@
 #include <nanogui/nanogui.h>
 
-using namespace std;
-using namespace nanogui;
-
 class Particle
 {
 
 public:
-    Particle(Vector3f pos, Vector3f velocity, Vector3f forces, Vector4f color, float size)
+    Particle(nanogui::Vector3f pos, nanogui::Vector3f velocity, nanogui::Vector3f forces, nanogui::Vector4f color, float size)
     {
         this->pos = pos;
         this->velocity = velocity;
@@ -17,10 +14,10 @@ public:
         this->lifespan = 3.0f;
     };
     ~Particle(){};
-    Vector3f pos;
-    Vector3f velocity;
-    Vector3f forces;
-    Vector4f color; // R, G, B, alpha
+    nanogui::Vector3f pos;
+    nanogui::Vector3f velocity;
+    nanogui::Vector3f forces;
+    nanogui::Vector4f color; // R, G, B, alpha
     float size;
     float lifespan;
 

@@ -21,7 +21,7 @@ public:
 
     void draw();
     void initGUI();
-    Vector2i default_window_size = Vector2i(1024, 800);
+    // Vector2i default_window_size = Vector2i(1024, 800);
     void cursorPosCallbackEvent(double x, double y);
     void mouseButtonCallbackEvent(int button, int action, int modifiers);
     void keyCallbackEvent(int key, int scancode, int action, int mods);

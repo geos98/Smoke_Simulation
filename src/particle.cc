@@ -1,5 +1,7 @@
 #include "particle.hh"
 
+using namespace nanogui;
+
 void Particle::update(double delta_t)
 {
     double a = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.05;

@@ -1,11 +1,11 @@
 #include "smoke.hh"
 
-Smoke::Smoke()
-{
-}
+using namespace std;
+using namespace nanogui;
 
 void Smoke::update(double delta_t)
 {
+    // TODO: optimize particles filtering
     vector<Particle> particles_copy;
     for (int i = 0; i < particles.size(); ++i)
     {
