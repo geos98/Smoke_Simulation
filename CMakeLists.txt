@@ -187,7 +187,7 @@ if(WIN32)
   # See https://cmake.org/cmake/help/v3.0/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html
   # > For DLL platforms the DLL part of a shared library is treated as a runtime target
   set_target_properties(nanogui PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 endif(WIN32)
 
 #-------------------------------------------------------------------------------
