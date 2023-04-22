@@ -23,6 +23,7 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 # Set include directories
 #-------------------------------------------------------------------------------
 include_directories(
+  ${CGL_INCLUDE_DIRS}
   ${FREETYPE_INCLUDE_DIRS}
   ${NANOGUI_EXTRA_INCS}
 )
@@ -31,6 +32,7 @@ include_directories(
 # Set link directories
 #-------------------------------------------------------------------------------
 link_directories(
+  ${CGL_LIBRARY_DIRS}
   ${FREETYPE_LIBRARY_DIRS}
 )
 
@@ -40,6 +42,7 @@ link_directories(
 add_executable(smoke_simulation ${Smoke_Simulation_Source})
 
 target_link_libraries(smoke_simulation
+    CGL ${CGL_LIBRARIES}
     nanogui ${NANOGUI_EXTRA_LIBS}
     ${FREETYPE_LIBRARIES}
     ${CMAKE_THREADS_INIT}

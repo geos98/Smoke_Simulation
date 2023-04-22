@@ -1,5 +1,6 @@
 #include "camera.hh"
-#include "misc/misc.h"
+//#include "misc/misc.h"
+#include "CGL/misc.h"
 
 #include <fstream>
 #include <iostream>
@@ -13,7 +14,8 @@ using std::max;
 using std::min;
 using std::ofstream;
 
-using namespace MISC;
+//using namespace MISC;
+using namespace CGL;
 using Collada::CameraInfo;
 
 void Camera::configure(const CameraInfo &info, size_t screenW, size_t screenH)

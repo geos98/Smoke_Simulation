@@ -4,6 +4,7 @@ project(Smoke_Simulation)
 #-------------------------------------------------------------------------------
 # Build options
 #-------------------------------------------------------------------------------
+option(BUILD_LIBCGL    "Build with libCGL"            ON)
 option(BUILD_DEBUG     "Build with debug settings"    OFF)
 option(BUILD_DOCS      "Build documentation"          OFF)
 
@@ -23,6 +24,14 @@ endif()
 # Building on OSX #
 ###################
 if(APPLE)
+
+     # OSX Framework dependencies
+  if(NOT BUILD_LIBCGL)
+    include_directories( "/System/Library/Frameworks" )
+    find_library (COCOA_LIBRARIES Cocoa)
+    find_library (IOKIT_LIBRARIES IOkit)
+    find_library (COREVIDEO_LIBRARIES CoreVideo)
+  endif()
 
   # OSX Framework dependencies
   # Clang configuration
@@ -74,6 +83,22 @@ if(UNIX AND NOT APPLE)
     set(GCC_CXX_FLAGS "-std=gnu++11 -m64")
     set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -Wno-deprecated-declarations")
     set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -Wno-misleading-indentation")
+
+        # X11 Dependencies
+    if(NOT BUILD_LIBCGL)
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXi")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXxf86vm")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXinerama")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXcursor")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXfixes")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXrandr")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXext")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXrender")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lX11")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lpthread")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lxcb")
+      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -lXau")
+    endif()
 
     # Debug configuration
     if(BUILD_DEBUG)
@@ -162,7 +187,7 @@ if(WIN32)
   # See https://cmake.org/cmake/help/v3.0/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html
   # > For DLL platforms the DLL part of a shared library is treated as a runtime target
   set_target_properties(nanogui PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 endif(WIN32)
 
 #-------------------------------------------------------------------------------
@@ -175,6 +200,14 @@ find_package(Threads REQUIRED)
 if(NOT WIN32)
   find_package(Freetype REQUIRED)
 endif()
+
+# CGL
+if(BUILD_LIBCGL)
+  add_subdirectory(CGL)
+  include_directories(CGL/include)
+else(BUILD_LIBCGL)
+  find_package(CGL REQUIRED)
+endif(BUILD_LIBCGL)
 
 #-------------------------------------------------------------------------------
 # Add subdirectories
