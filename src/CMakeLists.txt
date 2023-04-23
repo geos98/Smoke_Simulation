@@ -12,6 +12,9 @@ set(Smoke_Simulation_Source
 
     # Camera
     camera.cc
+
+    # Navier Stokes Solver
+    navier_stoke_solver.cc
 )
 
 #-------------------------------------------------------------------------------

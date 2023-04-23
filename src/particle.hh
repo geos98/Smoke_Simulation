@@ -1,3 +1,5 @@
+#ifndef PARTICLE_HH
+#define PARTICLE_HH
 #include <nanogui/nanogui.h>
 
 class Particle
@@ -12,6 +14,8 @@ public:
         this->color = color;
         this->size = size;
         this->lifespan = 3.0f;
+        this->L = size * 1.5f;
+        this->M = 0.01f;
     };
     ~Particle(){};
     nanogui::Vector3f pos;
@@ -20,6 +24,14 @@ public:
     nanogui::Vector4f color; // R, G, B, alpha
     float size;
     float lifespan;
+    double L; // smoothed particle length
+    double M; // particle mass
+    double density = 0.001f;
+    double pressure = 1.0f;
+    double base_density = 0.001f;
+    double fluid_stiffness = 0.01f;
+    nanogui::Vector3f gravity = nanogui::Vector3f(0.0f, -0.00981f, 0.0f);
 
     void update(double delta_t);
 };
+#endif // PARTICLE_HH
