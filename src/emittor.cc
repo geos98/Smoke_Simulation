@@ -2,7 +2,7 @@
 
 using namespace nanogui;
 
-Particle Emittor::emit()
+Particle Emittor::emit() const
 {
     double a = (((double)rand() / (double)RAND_MAX) - 0.5);
     double b = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.1;
