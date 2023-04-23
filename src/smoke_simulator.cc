@@ -17,8 +17,8 @@ SmokeSimulator::SmokeSimulator(string shader_dir, nanogui::Screen *screen, GLFWw
 
     Vector3f init_velocity = Vector3f(0, 0.5, 0);
     Vector4f init_color = Vector4f(66 / 256.0f, 135 / 256.0f, 245 / 256.0f, 1.0f);
-    emittor = new Emittor(Vector3f(0, -1, 0), init_velocity, init_color);
-    smoke = new Smoke();
+    emittor = Emittor(Vector3f(0, -1, 0), init_velocity, init_color);
+    smoke = Smoke();
     this->screen = screen;
     this->window = window;
 
@@ -34,9 +34,9 @@ SmokeSimulator::SmokeSimulator(string shader_dir, nanogui::Screen *screen, GLFWw
 
     nanogui::Vector3f avg_p_position(0, 0, 0);
 
-    for (auto &p : smoke->particles)
+    for (auto &p : smoke.particles)
     {
-        avg_p_position += p.pos / smoke->particles.size();
+        avg_p_position += p.pos / smoke.particles.size();
     }
 
     nanogui::Vector3f target(avg_p_position[0], avg_p_position[1] / 2,
@@ -130,21 +130,22 @@ void SmokeSimulator::draw()
     shader->setUniform("u_view_projection", viewProjection);
 
     // update particles positions
-    smoke->generateParticles(emittor, 100);
-    smoke->update(1 / frames_per_sec);
-    nanogui::MatrixXf positions(4, smoke->particles.size());
-    nanogui::MatrixXf colors(4, smoke->particles.size());
-    nanogui::MatrixXf sizes(1, smoke->particles.size());
-    for (int i = 0; i < smoke->particles.size(); ++i)
+    smoke.generateParticles(emittor, 100);
+    smoke.update(1 / frames_per_sec);
+    nanogui::MatrixXf positions(4, smoke.particles.size());
+    nanogui::MatrixXf colors(4, smoke.particles.size());
+    nanogui::MatrixXf sizes(1, smoke.particles.size());
+    for (size_t idx_p = 0; const auto& p : smoke.particles)
     {
-        positions.col(i) << smoke->particles[i].pos, 1;
-        colors.col(i) << smoke->particles[i].color;
-        sizes.col(i) << smoke->particles[i].size;
+        positions.col(idx_p) << p.pos, 1;
+        colors.col(idx_p) << p.color;
+        sizes.col(idx_p) << p.size;
+        ++idx_p;
     }
     shader->uploadAttrib("in_position", positions, false);
     shader->uploadAttrib("in_color", colors, false);
     shader->uploadAttrib("in_size", sizes, false);
-    shader->drawArray(GL_POINTS, 0, smoke->particles.size());
+    shader->drawArray(GL_POINTS, 0, smoke.particles.size());
 }
 
 std::string strval = "A string";
@@ -167,7 +168,7 @@ void SmokeSimulator::initGUI()
                                        << c.g() << ", "
                                        << c.b() << ", "
                                        << c.w() << "]" << std::endl; 
-                                this->emittor->init_color = Vector4f(c.r(), c.g(), c.b(), c.w()); });
+                                this->emittor.init_color = Vector4f(c.r(), c.g(), c.b(), c.w()); });
 
     screen->setVisible(true);
     screen->performLayout();

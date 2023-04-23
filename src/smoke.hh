@@ -1,4 +1,5 @@
 #include <nanogui/nanogui.h>
+#include <list>
 #include "emittor.hh"
 
 class Smoke
@@ -8,8 +9,8 @@ public:
     Smoke(){};
     ~Smoke(){};
 
-    std::vector<Particle> particles;
+    std::list<Particle> particles;
 
-    void generateParticles(Emittor *emittor, int num_particles);
+    void generateParticles(const Emittor& emittor, int num_particles);
     void update(double delta_t);
 };

@@ -13,8 +13,8 @@ public:
     SmokeSimulator(std::string shader_dir, nanogui::Screen *screen, GLFWwindow *window);
     ~SmokeSimulator(){};
 
-    Smoke *smoke;
-    Emittor *emittor;
+    Smoke smoke;
+    Emittor emittor;
     GLFWwindow *window;
 
     float frames_per_sec = 60.0f;
