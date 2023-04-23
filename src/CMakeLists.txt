@@ -6,7 +6,12 @@ set(Smoke_Simulation_Source
 
     # smoke simlator
     smoke_simulator.cc
+    smoke.cc
+    emittor.cc
     particle.cc
+
+    # Camera
+    camera.cc
 )
 
 #-------------------------------------------------------------------------------

@@ -5,15 +5,70 @@
 
 #include "smoke_simulator.hh"
 
-void error_callback(int error, const char* description) {
+SmokeSimulator *sim = nullptr;
+nanogui::Screen *screen = nullptr;
+GLFWwindow *window = nullptr;
+
+void error_callback(int error, const char *description)
+{
     puts(description);
 }
 
-int main(int argc, char** argv) {
+void setGLFWCallbacks()
+{
+    glfwSetCursorPosCallback(window, [](GLFWwindow *, double x, double y)
+                             {
+    if (!screen->cursorPosCallbackEvent(x, y)) {
+      sim->cursorPosCallbackEvent(x / screen->pixelRatio(),
+                                  y / screen->pixelRatio());
+    } });
+
+    glfwSetMouseButtonCallback(
+        window, [](GLFWwindow *, int button, int action, int modifiers)
+        {
+        if (!screen->mouseButtonCallbackEvent(button, action, modifiers) ||
+            action == GLFW_RELEASE) {
+          sim->mouseButtonCallbackEvent(button, action, modifiers);
+        } });
+
+    glfwSetKeyCallback(
+        window, [](GLFWwindow *, int key, int scancode, int action, int mods)
+        {
+        if (!screen->keyCallbackEvent(key, scancode, action, mods)) {
+          sim->keyCallbackEvent(key, scancode, action, mods);
+        } });
+
+    glfwSetCharCallback(window, [](GLFWwindow *, unsigned int codepoint)
+                        { screen->charCallbackEvent(codepoint); });
+
+    glfwSetDropCallback(window,
+                        [](GLFWwindow *, int count, const char **filenames)
+                        {
+                            screen->dropCallbackEvent(count, filenames);
+                            sim->dropCallbackEvent(count, filenames);
+                        });
+
+    glfwSetScrollCallback(window, [](GLFWwindow *, double x, double y)
+                          {
+    if (!screen->scrollCallbackEvent(x, y)) {
+      sim->scrollCallbackEvent(x, y);
+    } });
+
+    glfwSetFramebufferSizeCallback(window,
+                                   [](GLFWwindow *, int width, int height)
+                                   {
+                                       screen->resizeCallbackEvent(width, height);
+                                       sim->resizeCallbackEvent(width, height);
+                                   });
+}
+
+int main(int argc, char **argv)
+{
     std::string shader_path = argv[1];
 
     glfwSetErrorCallback(error_callback);
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         return 0;
     }
     std::cout << "Init Complete" << std::endl;
@@ -34,18 +89,20 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
     // Create a GLFWwindow object
-    auto *window = glfwCreateWindow(800, 800, "Smoke Simulator", nullptr, nullptr);
+    window = glfwCreateWindow(1000, 1000, "Smoke Simulator", nullptr, nullptr);
 
     std::cout << "Created window" << std::endl;
 
-    if (window == nullptr) {
+    if (window == nullptr)
+    {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return 0;
     }
     glfwMakeContextCurrent(window);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
         throw std::runtime_error("Could not initialize GLAD!");
     }
 
@@ -61,19 +118,17 @@ int main(int argc, char** argv) {
     glfwSwapBuffers(window);
 
     // Create a nanogui screen
-    auto* screen = new nanogui::Screen();
-    screen->initialize(window, true);
-    std::cout << "Created screen" << std::endl;
-
-    screen->setVisible(true);
-    screen->performLayout();
-
+    screen = new nanogui::Screen();
     std::cout << "Completed Initialization" << std::endl;
 
-    SmokeSimulator sim(shader_path, screen);
+    sim = new SmokeSimulator(shader_path, screen, window);
+    sim->initGUI();
+    setGLFWCallbacks();
+
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         glfwPollEvents();
 
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
@@ -82,13 +137,14 @@ int main(int argc, char** argv) {
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        sim.draw();
+        sim->draw();
 
         screen->drawContents();
         screen->drawWidgets();
 
         glfwSwapBuffers(window);
     }
+
     delete screen;
     return 0;
 }
