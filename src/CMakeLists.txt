@@ -9,6 +9,7 @@ set(Smoke_Simulation_Source
     smoke.cc
     emittor.cc
     particle.cc
+    navier_stoke_solver.cc
 
     # Camera
     camera.cc

@@ -32,7 +32,6 @@ public:
 
 private:
     std::shared_ptr<nanogui::GLShader> shader;
-    std::vector<Particle> particles;
 
     // Camera attributes
 
