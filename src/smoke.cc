@@ -37,7 +37,6 @@ void Smoke::build_spatial_map()
         uint64_t hash_pos = hash_position(p.pos);
         particle_map[hash_pos].emplace_back(&p);
     }
-    std::cout << "Totoal Grid Size " << particle_map.size() << std::endl; 
 }
 
 uint64_t Smoke::hash_position(nanogui::Vector3f pos)
