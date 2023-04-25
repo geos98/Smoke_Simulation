@@ -8,12 +8,14 @@ class Smoke
 
 public:
     Smoke(){};
-    Smoke(int width, int height, int grid_width, int grid_height)
+    Smoke(int width, int height, int depth, int grid_width, int grid_height, int grid_depth)
     {
         this->width = width;
         this->height = height;
+        this->depth = depth;
         this->grid_width = grid_width;
         this->grid_height = grid_height;
+        this->grid_depth = grid_depth;
         this->nsp = NavierStokeSolver();
     };
 

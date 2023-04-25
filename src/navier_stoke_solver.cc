@@ -184,6 +184,34 @@ double cubic_spline_kernel_laplacian(nanogui::Vector3f dxyz, double h)
     return d2W;
 }
 
+void NavierStokeSolver::update_rho_p(std::vector<Particle *> grid_particles, Particle *avg_p, double delta_t)
+{
+    if (grid_particles.size() == 0)
+        return;
+    avg_p = new Particle();
+    for (Particle *q : grid_particles)
+    {
+        avg_p->pos += q->pos;
+        avg_p->velocity += q->velocity;
+        avg_p->forces += q->forces;
+    }
+    avg_p->pos /= grid_particles.size();
+    avg_p->velocity /= grid_particles.size();
+    avg_p->forces /= grid_particles.size();
+
+    double total_weight = 0;
+    for (Particle *q : grid_particles)
+    {
+        nanogui::Vector3f diff_pos = avg_p->pos - q->pos;
+        double d = diff_pos.norm();
+        double weight = cubic_spline_kernel(d, (double)q->L);
+        total_weight += weight;
+        avg_p->density += q->M * weight;
+    }
+
+    avg_p->pressure = avg_p->fluid_stiffness * avg_p->density;
+}
+
 void NavierStokeSolver::simplified_update(std::vector<Particle *> grid_particles, double delta_t)
 {
     if (grid_particles.size() == 0)
@@ -213,9 +241,6 @@ void NavierStokeSolver::simplified_update(std::vector<Particle *> grid_particles
         total_weight += weight;
         p->density += q->M * weight;
     }
-
-    // p->density = pow(sum, 3) * (315.0f * p->M) / (64.0f * M_PI * pow(p->L, 6.0f));
-    // p->density = pow(sum, 3) * (315.0f * p->M) / (64.0f * M_PI * pow(p->L, 6.0f));
 
     // p = κ * (ρ − ρ₀)
     p->pressure = p->fluid_stiffness * p->density;
@@ -254,8 +279,6 @@ void NavierStokeSolver::simplified_update(std::vector<Particle *> grid_particles
     // nanogui::Vector3f viscosity_force = viscosity_vec * 45.0f * p->M / (M_PI * pow(p->L, 6.0f));
     // 6 Add up the RHS Fᵢ = Pᵢ + Vᵢ + G
     p->forces = pforce_vec + viscosity_vec + p->gravity;
-    // p->forces = pressure_force + p->gravity;
-    // return;
 
     for (Particle *q : grid_particles)
     {

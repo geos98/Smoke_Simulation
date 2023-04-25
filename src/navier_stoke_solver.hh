@@ -53,6 +53,7 @@ public:
 
     void update(std::vector<Particle *> grid_particles, double delta_t);
     void simplified_update(std::vector<Particle *> grid_particles, double delta_t);
+    void update_rho_p(std::vector<Particle *> grid_particles, Particle *avg_p, double delta_t);
 };
 
 #endif
