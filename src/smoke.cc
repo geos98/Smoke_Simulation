@@ -5,19 +5,23 @@ using namespace nanogui;
 
 void Smoke::update(double delta_t)
 {
-    build_spatial_map();
-    for (auto &pair : particle_map)
-    {
-        nsp.update(pair.second, delta_t);
-    }
-
     auto p_it = particles.begin();
+
     while (p_it != particles.end()) {
+        p_it->update(delta_t);
         if (p_it->lifespan <= 0) {
             particles.erase(p_it++);
         } else {
             p_it++;
         }
+    }
+
+    build_spatial_map();
+    for (auto &pair : particle_map)
+    {
+        //cout << pair.second.begin()[0]->pos << endl;
+        nsp.update(pair.second, delta_t);
+        //cout << pair.second.begin()[0]->pos << endl;
     }
 }
 

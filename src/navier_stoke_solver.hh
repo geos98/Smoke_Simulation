@@ -35,7 +35,7 @@ public:
         // this->density = 1.0f;
         // this->velocity = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
         // this->forces = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
-        this->base_density = 0.0f;
+        this->base_density = 0.001f;
         this->fluid_stiffness = 0.01f;
     };
     // double viscosity;
@@ -51,7 +51,7 @@ public:
     double fluid_stiffness;
     nanogui::Vector3f gravity = nanogui::Vector3f(0.0f, -9.81f, 0.0f);
 
-    void update(std::vector<Particle *>& grid_particles, double delta_t);
+    void update(const std::vector<Particle *>& grid_particles, double delta_t);
 };
 
 #endif

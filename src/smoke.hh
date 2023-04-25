@@ -8,6 +8,14 @@ class Smoke
 
 public:
     Smoke(){};
+    Smoke(int width, int height, int grid_width, int grid_height){
+        this->width = width;
+        this->height = height;
+        this->grid_width = grid_width;
+        this->grid_height = grid_height;
+        this->nsp = NavierStokeSolver();
+    };
+
     ~Smoke(){};
 
     std::list<Particle> particles;

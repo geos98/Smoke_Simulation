@@ -14,6 +14,8 @@ public:
         this->color = color;
         this->size = size;
         this->lifespan = 3.0f;
+        this->L = size * 1.5f;
+        this->M = 0.01f;
     };
     ~Particle(){};
 

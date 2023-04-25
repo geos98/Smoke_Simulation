@@ -58,7 +58,7 @@ using std::pow;
 
 using namespace nanogui;
 
-void NavierStokeSolver::update(std::vector<Particle *>& grid_particles, double delta_t)
+void NavierStokeSolver::update(const std::vector<Particle *>& grid_particles, double delta_t)
 {
     if (grid_particles.size() == 0)
         return;

@@ -18,7 +18,7 @@ SmokeSimulator::SmokeSimulator(string shader_dir, nanogui::Screen *screen, GLFWw
     Vector3f init_velocity = Vector3f(0, 0.5, 0);
     Vector4f init_color = Vector4f(66 / 256.0f, 135 / 256.0f, 245 / 256.0f, 1.0f);
     emittor = Emittor(Vector3f(0, -1, 0), init_velocity, init_color);
-    smoke = Smoke();
+    smoke = Smoke(400, 400, 200, 200);
     this->screen = screen;
     this->window = window;
 
