@@ -34,8 +34,10 @@ public:
     void generateParticles(Emittor emittor, int num_particles);
     void update(double delta_t);
     void build_spatial_map();
+    void calculate_avg_rho_p_for_grid();
     uint64_t hash_position(nanogui::Vector3f pos);
 
 private:
     std::unordered_map<uint64_t, std::vector<Particle *>> particle_map;
+    std::unordered_map<uint64_t, Particle *> avg_particle_map;
 };

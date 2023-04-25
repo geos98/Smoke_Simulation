@@ -6,15 +6,28 @@ using namespace nanogui;
 void Smoke::update(double delta_t)
 {
     build_spatial_map();
+    calculate_avg_rho_p_for_grid();
     for (auto &pair : particle_map)
     {
-        nsp.simplified_update(pair.second, delta_t);
-        // nsp.update(pair.second, delta_t);
+        nsp.reset_particle_forces(pair.second, avg_particle_map[pair.first]);
+        for (int dx = -1; dx <= 1; ++dx)
+        {
+            for (int dy = -1; dy <= 1; ++dy)
+            {
+                for (int dz = -1; dz <= 1; ++dz)
+                {
+                    nanogui::Vector3f pos_shift = nanogui::Vector3f(dx, dy, dz);
+                    uint64_t key = hash_position(avg_particle_map[pair.first]->pos + pos_shift);
+                    nsp.update_with_neighbour_cells(pair.second, avg_particle_map[key], delta_t);
+                }
+            }
+        }
     }
 
     auto p_it = particles.begin();
     while (p_it != particles.end())
     {
+        p_it->update(delta_t);
         if (p_it->lifespan <= 0)
         {
             particles.erase(p_it++);
@@ -42,6 +55,17 @@ void Smoke::build_spatial_map()
         uint64_t hash_pos = hash_position(p.pos);
         // std::cout << "hash_position " << hash_pos << std::endl;
         particle_map[hash_pos].emplace_back(&p);
+    }
+}
+
+void Smoke::calculate_avg_rho_p_for_grid()
+{
+    avg_particle_map.clear();
+    for (auto &pair : particle_map)
+    {
+        Particle *p = new Particle();
+        avg_particle_map[pair.first] = new Particle();
+        nsp.update_rho_p(pair.second, avg_particle_map[pair.first]);
     }
 }
 
