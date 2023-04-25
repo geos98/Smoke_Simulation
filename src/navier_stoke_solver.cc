@@ -244,8 +244,7 @@ void NavierStokeSolver::update_with_neighbour_cells(std::vector<Particle *> grid
 
     for (Particle *q : grid_particles)
     {
-        double scale = cubic_spline_kernel((q->pos - p->pos).norm(), p->L) / total_weight;
-        q->forces += p->forces * scale;
+        q->forces += p->forces;
         q->velocity += delta_t * q->forces / p->density;
         q->pos += delta_t * q->velocity;
         q->update(delta_t);
