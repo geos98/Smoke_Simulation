@@ -2,9 +2,6 @@
 #define NAVIER_STOKE_SOLVER_HH
 #include "particle.hh"
 #include <nanogui/nanogui.h>
-#include <omp.h>
-
-#define THREADNUM 8
 
 #define M_PI 3.14159265358979323846
 
@@ -44,8 +41,6 @@ public:
         // this->forces = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
         this->base_density = 0.0f;
         this->fluid_stiffness = 0.01f;
-
-        omp_set_num_threads(THREADNUM);
     };
     // double viscosity;
     // double pressure;

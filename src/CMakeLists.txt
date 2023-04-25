@@ -48,6 +48,9 @@ target_link_libraries(smoke_simulation
     ${CMAKE_THREADS_INIT}
 )
 
+find_package(OpenMP REQUIRED)
+target_link_libraries(smoke_simulation PRIVATE OpenMP::OpenMP_CXX)
+
 #-------------------------------------------------------------------------------
 # Platform-specific configurations for target
 #-------------------------------------------------------------------------------
