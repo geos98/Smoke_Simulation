@@ -62,6 +62,8 @@ void NavierStokeSolver::update(std::vector<Particle *> grid_particles, double de
 {
     if (grid_particles.size() == 0)
         return;
+
+#pragma omp parallel for collapse(2)
     for (Particle *p : grid_particles)
     {
         // 1 Compute the distances particle positions to the center
@@ -81,6 +83,7 @@ void NavierStokeSolver::update(std::vector<Particle *> grid_particles, double de
         p->pressure = std::max(p->fluid_stiffness * (p->density - p->base_density), (double)0.001f);
     }
 
+#pragma omp parallel for collapse(2)
     for (Particle *p : grid_particles)
     {
         // 4 Compute the pressure force of each particle
