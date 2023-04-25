@@ -17,7 +17,7 @@ public:
     Emittor emittor;
     GLFWwindow *window;
 
-    float frames_per_sec = 60.0f;
+    float frames_per_sec = 10.0f;
 
     void draw();
     void initGUI();
@@ -32,7 +32,7 @@ public:
 
 private:
     std::shared_ptr<nanogui::GLShader> shader;
-    std::vector<Particle> particles;
+    // std::vector<Particle> particles;
 
     // Camera attributes
 

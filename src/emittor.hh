@@ -5,7 +5,7 @@ class Emittor
 {
 
 public:
-    Emittor() {};
+    Emittor(){};
 
     Emittor(nanogui::Vector3f position, nanogui::Vector3f init_velocity, nanogui::Vector4f init_color)
     {
