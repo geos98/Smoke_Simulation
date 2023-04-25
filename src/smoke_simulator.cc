@@ -18,7 +18,7 @@ SmokeSimulator::SmokeSimulator(string shader_dir, nanogui::Screen *screen, GLFWw
     Vector3f init_velocity = Vector3f(0, 0.5, 0);
     Vector4f init_color = Vector4f(66 / 256.0f, 135 / 256.0f, 245 / 256.0f, 1.0f);
     emittor = Emittor(Vector3f(0, -1, 0), init_velocity, init_color);
-    smoke = Smoke();
+    smoke = Smoke(400, 400, 400, 1000, 1000, 1000);
     this->screen = screen;
     this->window = window;
 
@@ -130,13 +130,14 @@ void SmokeSimulator::draw()
     shader->setUniform("u_view_projection", viewProjection);
 
     // update particles positions
-    smoke.generateParticles(emittor, 100);
+    smoke.generateParticles(emittor, 50);
     smoke.update(1 / frames_per_sec);
     nanogui::MatrixXf positions(4, smoke.particles.size());
     nanogui::MatrixXf colors(4, smoke.particles.size());
     nanogui::MatrixXf sizes(1, smoke.particles.size());
-    for (size_t idx_p = 0; const auto& p : smoke.particles)
+    for (size_t idx_p = 0; const auto &p : smoke.particles)
     {
+
         positions.col(idx_p) << p.pos, 1;
         colors.col(idx_p) << p.color;
         sizes.col(idx_p) << p.size;

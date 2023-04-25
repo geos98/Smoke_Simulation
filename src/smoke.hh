@@ -8,20 +8,30 @@ class Smoke
 
 public:
     Smoke(){};
+    Smoke(int width, int height, int depth, int grid_width, int grid_height, int grid_depth)
+    {
+        this->width = width;
+        this->height = height;
+        this->depth = depth;
+        this->grid_width = grid_width;
+        this->grid_height = grid_height;
+        this->grid_depth = grid_depth;
+        this->nsp = NavierStokeSolver();
+    };
     ~Smoke(){};
 
-    std::list<Particle> particles;
-
-    void generateParticles(const Emittor& emittor, int num_particles);
-    void update(double delta_t);
-
     NavierStokeSolver nsp;
+    std::list<Particle> particles;
 
     int width;
     int height;
+    int depth;
     int grid_width;
     int grid_height;
+    int grid_depth;
 
+    void generateParticles(Emittor emittor, int num_particles);
+    void update(double delta_t);
     void build_spatial_map();
     uint64_t hash_position(nanogui::Vector3f pos);
 
