@@ -51,7 +51,8 @@ public:
     double fluid_stiffness;
     nanogui::Vector3f gravity = nanogui::Vector3f(0.0f, -9.81f, 0.0f);
 
-    void update(std::vector<Particle *>& grid_particles, double delta_t);
+    void update(std::vector<Particle *> grid_particles, double delta_t);
+    void simplified_update(std::vector<Particle *> grid_particles, double delta_t);
 };
 
 #endif

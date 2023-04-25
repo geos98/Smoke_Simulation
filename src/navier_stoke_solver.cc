@@ -6,6 +6,7 @@
 #include "navier_stoke_solver.hh"
 
 using std::pow;
+using namespace nanogui;
 
 // Smoothed Particle Hydrodynamics (SPH). Uses the super-simple
 // approch of Matthias Müller: https://matthias-research.github.io/pages/publications/sca03.pdf
@@ -56,9 +57,7 @@ using std::pow;
 //     2.2 Update the particles' positions
 //         xᵢ ← xᵢ + Δt uᵢ
 
-using namespace nanogui;
-
-void NavierStokeSolver::update(std::vector<Particle *>& grid_particles, double delta_t)
+void NavierStokeSolver::update(std::vector<Particle *> grid_particles, double delta_t)
 {
     if (grid_particles.size() == 0)
         return;
@@ -81,7 +80,7 @@ void NavierStokeSolver::update(std::vector<Particle *>& grid_particles, double d
         p->pressure = std::max(p->fluid_stiffness * (p->density - p->base_density), (double)0.001f);
     }
 
-    for (Particle* p : grid_particles)
+    for (Particle *p : grid_particles)
     {
         // 4 Compute the pressure force of each particle
         // Pᵢ = (− (45 M) / (π L⁶)) ∑ⱼ [− (xⱼ − xᵢ) / (dᵢⱼ)] [(pⱼ + pᵢ) / (2 ρⱼ)] (L − dᵢⱼ)²
@@ -89,7 +88,7 @@ void NavierStokeSolver::update(std::vector<Particle *>& grid_particles, double d
         // Vᵢ = (45 μ M) / (π L⁶) ∑ⱼ (uⱼ − uᵢ) / (ρⱼ) (L − dᵢⱼ)
         nanogui::Vector3f pforce_vec = nanogui::Vector3f(0, 0, 0); // pressure forcs
         nanogui::Vector3f viscosity_vec = nanogui::Vector3f(0, 0, 0);
-        for (Particle* q : grid_particles)
+        for (Particle *q : grid_particles)
         {
             if (q == p)
                 continue;
@@ -104,10 +103,67 @@ void NavierStokeSolver::update(std::vector<Particle *>& grid_particles, double d
         // Fᵢ = Pᵢ + Vᵢ + G
         p->forces = pressure_force + viscosity_force + p->gravity;
     }
-    for (Particle* p : grid_particles)
+    for (Particle *p : grid_particles)
     {
         p->velocity += delta_t * p->forces / p->density;
         p->pos += delta_t * p->velocity;
         p->update(delta_t);
+    }
+}
+
+void NavierStokeSolver::simplified_update(std::vector<Particle *> grid_particles, double delta_t)
+{
+    if (grid_particles.size() == 0)
+        return;
+
+    // Get average particle in a grid
+    Particle *p = new Particle();
+    for (Particle *q : grid_particles)
+    {
+        p->pos += q->pos;
+        p->velocity += q->velocity;
+        p->forces += q->forces;
+    }
+    p->pos /= grid_particles.size();
+    p->velocity /= grid_particles.size();
+    p->forces /= grid_particles.size();
+
+    double sum = 0;
+    for (Particle *q : grid_particles)
+    {
+        // 1 Compute the distances particle positions to the center
+        // 2 Compute the density at each grid's position
+        // ρᵢ = (315 M) / (64 π L⁹) ∑ⱼ (L² − dᵢⱼ²)³
+        nanogui::Vector3f diff_pos = p->pos - q->pos;
+        double d = diff_pos.norm();
+        sum += pow(p->L * p->L - d * d, 3);
+    }
+    p->density = std::max(sum * (315.0f * p->M) / (64.0f * M_PI * pow(p->L, 9.0f)), p->base_density);
+    // p = κ * (ρ − ρ₀)
+    p->pressure = std::max(p->fluid_stiffness * (p->density - p->base_density), (double)0.001f);
+
+    nanogui::Vector3f pforce_vec = nanogui::Vector3f(0, 0, 0); // pressure forcs
+    nanogui::Vector3f viscosity_vec = nanogui::Vector3f(0, 0, 0);
+    for (Particle *q : grid_particles)
+    {
+        // 4 Compute the pressure force of each particle
+        // Pᵢ = (− (45 M) / (π L⁶)) ∑ⱼ [− (xⱼ − xᵢ) / (dᵢⱼ)] [(pⱼ + pᵢ) / (2 ρⱼ)] (L − dᵢⱼ)²
+        // 5 Compute the viscosity force of each particle
+        // Vᵢ = (45 μ M) / (π L⁶) ∑ⱼ (uⱼ − uᵢ) / (ρⱼ) (L − dᵢⱼ)
+        nanogui::Vector3f diff_pos = p->pos - q->pos;
+        double dist_ij = diff_pos.norm();
+        pforce_vec += (diff_pos / dist_ij) * ((p->pressure + q->pressure) * pow((p->L - dist_ij), 2.0f) / (2.0f * q->density));
+        viscosity_vec += (q->velocity - p->velocity) * (p->L - dist_ij) / q->density;
+    }
+    nanogui::Vector3f pressure_force = pforce_vec * (-45.0f * p->M) / (M_PI * pow(p->L, 6.0f));
+    nanogui::Vector3f viscosity_force = viscosity_vec * 45.0f * p->M / (M_PI * pow(p->L, 6.0f));
+    // 6 Add up the RHS Fᵢ = Pᵢ + Vᵢ + G
+    p->forces = pressure_force + viscosity_force + p->gravity;
+
+    for (Particle *q : grid_particles)
+    {
+        q->velocity += delta_t * p->forces / p->density;
+        q->pos += delta_t * p->velocity;
+        q->update(delta_t);
     }
 }

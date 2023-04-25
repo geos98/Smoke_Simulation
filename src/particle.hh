@@ -6,6 +6,7 @@ class Particle
 {
 
 public:
+    Particle(){};
     Particle(nanogui::Vector3f pos, nanogui::Vector3f velocity, nanogui::Vector3f forces, nanogui::Vector4f color, float size)
     {
         this->pos = pos;
