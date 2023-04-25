@@ -8,10 +8,12 @@ using namespace nanogui;
 
 void Particle::update(double delta_t)
 {
-    double a = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.05;
-    double b = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.05;
-    double c = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.05;
+    // double a = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.05;
+    // double b = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.05;
+    // double c = (((double)rand() / (double)RAND_MAX) - 0.5) * 0.05;
     // pos += Vector3f(velocity[0] + a, velocity[1] + b, velocity[2] + c) * delta_t;
+    velocity += delta_t * forces;
+    pos += delta_t * velocity;
     float sum = pos[0] + pos[1] + pos[2];
     // velocity += forces * delta_t;
     lifespan -= delta_t * ((double)rand() / (double)RAND_MAX);
