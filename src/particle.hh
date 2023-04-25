@@ -22,7 +22,11 @@ public:
         this->size = size;
         this->lifespan = 3.0f;
         this->L = size * 1.5f;
+<<<<<<< HEAD
         this->M = 0.1f;
+=======
+        this->M = 0.01f;
+>>>>>>> afcec9b9dc838e6237c6776460f371d7d43021a6
     };
     ~Particle(){};
 
