@@ -15,10 +15,16 @@ void Smoke::update(double delta_t)
             {
                 for (int dz = -1; dz <= 1; ++dz)
                 {
-                    nanogui::Vector3f pos_shift = nanogui::Vector3f(dx, dy, dz);
+                    nanogui::Vector3f pos_shift = nanogui::Vector3f(dx * width / grid_width, dy * height / grid_height, dz * depth / grid_depth);
                     uint64_t key = hash_position(avg_particle_map[pair.first]->pos + pos_shift);
-
-                    nsp.update_with_neighbour_cells(pair.second, avg_particle_map[key], delta_t);
+                    if (!avg_particle_map[pair.first])
+                    {
+                        std::cout << "No neighbour particles" << std::endl;
+                    }
+                    else
+                    {
+                        nsp.update_with_neighbour_cells(pair.second, avg_particle_map[key], delta_t);
+                    }
                 }
             }
         }
