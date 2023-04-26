@@ -55,7 +55,7 @@ public:
 
     void update(std::vector<Particle *> grid_particles, double delta_t);
     void simplified_update(std::vector<Particle *> grid_particles, double delta_t);
-    void update_rho_p(std::vector<Particle *> grid_particles, Particle *avg_p);
+    void update_avg_p(std::vector<Particle *> grid_particles, Particle *avg_p);
     void update_with_neighbour_cells(std::vector<Particle *> grid_particles, Particle *neighbour_p, double delta_t);
     void reset_particle_forces(std::vector<Particle *> grid_particles, Particle *avg_p);
 };

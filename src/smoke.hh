@@ -34,7 +34,7 @@ public:
     void generateParticles(Emittor emittor, int num_particles);
     void update(double delta_t);
     void build_spatial_map();
-    void calculate_avg_rho_p_for_grid();
+    void update_avg_particle();
     uint64_t hash_position(nanogui::Vector3f pos);
 
 private:
