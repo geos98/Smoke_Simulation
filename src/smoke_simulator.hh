@@ -17,7 +17,7 @@ public:
     Emittor emittor;
     GLFWwindow *window;
 
-    float frames_per_sec = 100.0f;
+    float frames_per_sec = 60.0f;
 
     void draw();
     void initGUI();

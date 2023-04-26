@@ -38,8 +38,10 @@ public:
     double L; // smoothed particle length
     double M; // particle mass
     double density = 0.0001f;
+    double base_density = 0.0001f;
     double pressure = 0.0001f;
-    double temperature = 0.001f;
+    double temperature = 27.0f;
+    double ambient_temp = 27.0f;
     double fluid_stiffness = 100.0f;
     nanogui::Vector3f buoyancy = nanogui::Vector3f(0.0f, -0.001f, 0.0f);
     nanogui::Vector3f vorticity = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
