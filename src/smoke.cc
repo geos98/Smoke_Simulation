@@ -7,6 +7,8 @@ void Smoke::update(double delta_t)
 {
     build_spatial_map();   // build grid based on new particle positions
     update_avg_particle(); // calculate average particle attributes for new grid
+
+    // #pragma omp parallel for
     for (auto &pair : particle_map)
     {
         for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
@@ -15,11 +17,11 @@ void Smoke::update(double delta_t)
             {
                 for (int dz = -1; dz <= 1; ++dz)
                 {
-                    nanogui::Vector3f pos_shift = nanogui::Vector3f(dx * width / grid_width, dy * height / grid_height, dz * depth / grid_depth);
+                    nanogui::Vector3f pos_shift = nanogui::Vector3f(dx, dy, dz);
                     uint64_t key = hash_position(avg_particle_map[pair.first]->pos + pos_shift);
-                    if (!avg_particle_map[pair.first])
+                    if (!avg_particle_map[key])
                     {
-                        std::cout << "No neighbour particles" << std::endl;
+                        continue;
                     }
                     else
                     {
@@ -30,6 +32,7 @@ void Smoke::update(double delta_t)
         }
     }
 
+    // #pragma omp parallel for
     auto p_it = particles.begin();
     while (p_it != particles.end())
     {
@@ -93,9 +96,9 @@ uint64_t Smoke::hash_position(nanogui::Vector3f pos)
 
     // return (x_box * p1) ^ (y_box * p2) ^ (z_box * p3);
 
-    int64_t ix = static_cast<int64_t>(std::floor(pos[0] / grid_width));
-    int64_t iy = static_cast<int64_t>(std::floor(pos[1] / grid_height));
-    int64_t iz = static_cast<int64_t>(std::floor(pos[2] / grid_depth));
+    int64_t ix = static_cast<int64_t>(std::floor(pos[0] * width / grid_width));
+    int64_t iy = static_cast<int64_t>(std::floor(pos[1] * height / grid_height));
+    int64_t iz = static_cast<int64_t>(std::floor(pos[2] * depth / grid_depth));
 
     // Combine the grid indices into a single 64-bit integer
     // by interleaving the bits of the x, y, and z indices.
