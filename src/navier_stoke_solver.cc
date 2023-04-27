@@ -5,6 +5,7 @@
 #include <cmath>
 #include "navier_stoke_solver.hh"
 
+#define M_PI 3.1415926
 using std::pow;
 using namespace nanogui;
 
@@ -223,6 +224,7 @@ nanogui::Vector3f compute_vorticity_confinement_force(Particle *p, Particle *nei
     vorticity_confine[0] = epsilon * p->L * (grad_vorticity_magnitude[1] * p->vorticity[2] - grad_vorticity_magnitude[2] * p->vorticity[1]);
     vorticity_confine[1] = epsilon * p->L * (grad_vorticity_magnitude[2] * p->vorticity[0] - grad_vorticity_magnitude[0] * p->vorticity[2]);
     vorticity_confine[2] = epsilon * p->L * (grad_vorticity_magnitude[0] * p->vorticity[1] - grad_vorticity_magnitude[1] * p->vorticity[0]);
+    return vorticity_confine;
 }
 
 void NavierStokeSolver::update_avg_p(std::vector<Particle *> grid_particles, Particle *avg_p)

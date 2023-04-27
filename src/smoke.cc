@@ -1,42 +1,61 @@
 #include "smoke.hh"
+#include <omp.h>
+
+#define _OPENMP
+#define THREADNUM 8
 
 using namespace std;
 using namespace nanogui;
 
 void Smoke::update(double delta_t)
 {
-    build_spatial_map();   // build grid based on new particle positions
-    update_avg_particle(); // calculate average particle attributes for new grid
-    for (auto &pair : particle_map)
-    {
-        for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
-        {
-            for (int dy = -1; dy <= 1; ++dy)
-            {
-                for (int dz = -1; dz <= 1; ++dz)
-                {
-                    nanogui::Vector3f pos_shift = nanogui::Vector3f(dx, dy, dz);
-                    uint64_t key = hash_position(avg_particle_map[pair.first]->pos + pos_shift);
+    omp_set_num_threads(THREADNUM);
 
-                    nsp.update_with_neighbour_cells(pair.second, avg_particle_map[key], delta_t);
+        build_spatial_map();   // build grid based on new particle positions
+        update_avg_particle(); // calculate average particle attributes for new grid
+
+#ifdef _OPENMP
+#pragma omp parallel default(shared)
+        {
+#endif
+#pragma omp for
+        for (int i = 0; i < particle_map.size(); i++)
+        {
+            auto pair = particle_map.begin();
+            advance(pair, i);
+            //std::cout << omp_get_thread_num() << std::endl;
+
+            for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
+            {
+                for (int dy = -1; dy <= 1; ++dy)
+                {
+                    for (int dz = -1; dz <= 1; ++dz)
+                    {
+                        nanogui::Vector3f pos_shift = nanogui::Vector3f(dx, dy, dz);
+                        uint64_t key = hash_position(avg_particle_map[pair->first]->pos + pos_shift);
+                        if (avg_particle_map.find(key) != avg_particle_map.end())
+                            nsp.update_with_neighbour_cells(pair->second, avg_particle_map[key], delta_t);
+                    }
                 }
             }
         }
-    }
+#ifdef _OPENMP
+        }
+#endif
 
-    auto p_it = particles.begin();
-    while (p_it != particles.end())
-    {
-        p_it->update(delta_t);
-        if (p_it->lifespan <= 0)
+        auto p_it = particles.begin();
+        while (p_it != particles.end())
         {
-            particles.erase(p_it++);
+            p_it->update(delta_t);
+            if (p_it->lifespan <= 0)
+            {
+                particles.erase(p_it++);
+            }
+            else
+            {
+                p_it++;
+            }
         }
-        else
-        {
-            p_it++;
-        }
-    }
 }
 
 void Smoke::generateParticles(const Emittor emittor, int num_particles)
@@ -61,6 +80,7 @@ void Smoke::build_spatial_map()
 void Smoke::update_avg_particle()
 {
     avg_particle_map.clear();
+//#pragma omp for
     for (auto &pair : particle_map)
     {
         Particle *p = new Particle();

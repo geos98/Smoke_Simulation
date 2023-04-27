@@ -17,5 +17,5 @@ void Particle::update(double delta_t)
     float sum = pos[0] + pos[1] + pos[2];
     // velocity += forces * delta_t;
     lifespan -= delta_t * ((double)rand() / (double)RAND_MAX);
-    color -= Vector4f(pos[0] / sum, pos[1] / sum, pos[2] / sum, ((double)rand() / (double)RAND_MAX));
+    //color -= Vector4f(pos[0] / sum, pos[1] / sum, pos[2] / sum, ((double)rand() / (double)RAND_MAX));
 }
