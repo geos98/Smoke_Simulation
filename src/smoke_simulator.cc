@@ -135,7 +135,8 @@ void SmokeSimulator::draw()
     nanogui::MatrixXf positions(4, smoke.particles.size());
     nanogui::MatrixXf colors(4, smoke.particles.size());
     nanogui::MatrixXf sizes(1, smoke.particles.size());
-    for (size_t idx_p = 0; const auto &p : smoke.particles)
+    size_t idx_p = 0;
+    for ( const auto &p : smoke.particles)
     {
 
         positions.col(idx_p) << p.pos, 1;
