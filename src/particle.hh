@@ -8,9 +8,9 @@ class Particle
 public:
     Particle()
     {
-        this->size = 1;
-        this->lifespan = 3.0f;
-        this->L = size * 1.5f;
+        this->size = 3;
+        this->lifespan = 30.0f;
+        this->L = size * 2.0f;
         this->M = 0.1f;
     };
     Particle(nanogui::Vector3f pos, nanogui::Vector3f velocity, nanogui::Vector3f forces, nanogui::Vector4f color, float size)
@@ -20,8 +20,8 @@ public:
         this->forces = forces;
         this->color = color;
         this->size = size;
-        this->lifespan = 3.0f;
-        this->L = size * 1.5f;
+        this->lifespan = 30.0f;
+        this->L = size * 2.0f;
         this->M = 0.1f;
     };
     ~Particle(){};
@@ -45,8 +45,11 @@ public:
     double fluid_stiffness = 100.0f;
     nanogui::Vector3f buoyancy = nanogui::Vector3f(0.0f, -0.001f, 0.0f);
     nanogui::Vector3f vorticity = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
+    nanogui::Vector3f vorticity_new = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
     nanogui::Vector3f vorticity_confine = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
-    nanogui::Vector3f gravity = nanogui::Vector3f(0.0f, -0.981f, 0.0f);
+    nanogui::Vector3f gravity = nanogui::Vector3f(0.0f, -9.81f, 0.0f);
+    double buoyancy_coefficient = 1.0f;
+    double thermal_expansion_coefficient = 0.5f;
     void update(double delta_t);
 };
 
