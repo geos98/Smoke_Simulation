@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(Smoke_Simulation)
 
+
 #-------------------------------------------------------------------------------
 # Build options
 #-------------------------------------------------------------------------------
@@ -52,13 +53,36 @@ if(APPLE)
     if(BUILD_DEBUG)
       set(CMAKE_BUILD_TYPE Debug)
       set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -g")
+    # else(BUILD_DEBUG)
+    #   set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -O3")
+    #   set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -fopenmp")
+    # endif(BUILD_DEBUG)
     else(BUILD_DEBUG)
-      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -O3")
-      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -fopenmp")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -O3")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -funroll-loops")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -Wno-narrowing")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -Wno-deprecated-register")
     endif(BUILD_DEBUG)
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_CXX_FLAGS}")
 
+    if(OpenMP_CXX_FOUND)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
+
+  endif()
+
+  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(OpenMP_C "${CMAKE_C_COMPILER}")
+    set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+    set(OpenMP_C_LIB_NAMES "omp")
+    set(OpenMP_omp_LIBRARY "${OpenMP_C_LIB_NAMES}")
+  endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+    set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_omp_LIBRARY "${OpenMP_CXX_LIB_NAMES}")
   endif()
 
 endif(APPLE)
@@ -172,9 +196,12 @@ endif(WIN32)
 # Required packages
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
+
 if(NOT WIN32)
   find_package(Freetype REQUIRED)
 endif()
+
+
 
 #-------------------------------------------------------------------------------
 # Add subdirectories
