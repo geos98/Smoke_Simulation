@@ -189,14 +189,18 @@ double cubic_spline_kernel_laplacian(nanogui::Vector3f dxyz, double h)
 double update_particle_temperature(Particle *p, Particle *neighbor, double delta_t, double W_grad)
 {
     double diffusion_coeff = 0.024f;
-    double dT = neighbor->temperature - p->temperature;
+    double dT = std::max(p->temperature - neighbor->temperature, (double)0.01f);
     return delta_t * diffusion_coeff * dT * W_grad;
 }
 
 nanogui::Vector3f compute_buoyancy_force(double density_diff, double temperature_diff, double alpha, double beta, nanogui::Vector3f gravity)
 {
 
-    return -alpha * density_diff * gravity + beta * temperature_diff * gravity;
+    // The buoyancy force is directed upwards (in the positive y direction)
+
+    // Calculate the buoyancy force
+    // double temperature_difference = p.temperature - ambient_temperature;
+    nanogui::Vector3f buoyancy_force = -(alpha * temperature_diff + beta * density_diff) * gravity;
 }
 void compute_vorticity(Particle *p, Particle *neighbor, double W_grad)
 {
@@ -258,11 +262,11 @@ void NavierStokeSolver::update_avg_p(std::vector<Particle *> grid_particles, Par
     for (Particle *p : grid_particles)
     {
         p->buoyancy = nanogui::Vector3f(0, 0, 0);
-        p->vorticity = nanogui::Vector3f(0, 0, 0);
+        // p->vorticity = nanogui::Vector3f(0, 0, 0);
         p->density = avg_p->density;
         p->pressure = avg_p->pressure;
         p->forces = avg_p->gravity;
-        p->temperature = 0.0f;
+        p->temperature = avg_p->temperature;
     }
 }
 
@@ -276,21 +280,21 @@ void NavierStokeSolver::update_with_neighbour_cells(std::vector<Particle *> grid
         // Calculate the kernel gradient for the current distance
         nanogui::Vector3f d = neighbour_p->pos - q->pos;
         double distance = d.norm();
-        std::cout << "distance " << distance << " " << q->temperature << std::endl;
-        double W = cubic_spline_kernel(distance, q->L);
-        double W_grad = cubic_spline_kernel_gradient(d, q->L).norm();
+        // std::cout << "distance " << distance << " " << neighbour_p->temperature << " " << grid_particles.size() << std::endl;
+        double W = std::max(cubic_spline_kernel(distance, q->L), (double)0.0001f);
+        double W_grad = std::max((double)cubic_spline_kernel_gradient(d, q->L).norm(), (double)0.0001f);
         // temperature
         q->temperature += update_particle_temperature(neighbour_p, q, delta_t, W);
-        // std::cout << "temp: " << W << std::endl;
+        // std::cout << "W: " << W << "W_grad: " << W_grad << std::endl;
 
         // buoyancy forces
-        q->buoyancy += compute_buoyancy_force(neighbour_p->density - q->density, neighbour_p->temperature - q->temperature, buoyancy_coefficient, thermal_expansion_coefficient, neighbour_p->gravity);
-        // std::cout << "buoy: " << q->buoyancy << std::endl;
+        // q->buoyancy += compute_buoyancy_force(q->density - neighbour_p->density, q->temperature - q->ambient_temp, buoyancy_coefficient, thermal_expansion_coefficient, q->gravity);
+        // std::cout << "buoy: " << neighbour_p->buoyancy << std::endl;
         // q->forces += q->buoyancy;
 
         // vorticity confinement forces
         q->vorticity_confine += compute_vorticity_confinement_force(neighbour_p, q, W_grad);
-        // q->forces += q->vorticity_confine;
+        q->forces += q->vorticity_confine;
         // pressure forces
         double p_factor = -(neighbour_p->M * (neighbour_p->pressure / (neighbour_p->density * neighbour_p->density)) +
                             q->M * (q->pressure / (q->density * q->density)));
