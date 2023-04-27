@@ -201,6 +201,7 @@ nanogui::Vector3f compute_buoyancy_force(double density_diff, double temperature
     // Calculate the buoyancy force
     // double temperature_difference = p.temperature - ambient_temperature;
     nanogui::Vector3f buoyancy_force = -(alpha * temperature_diff + beta * density_diff) * gravity;
+    return buoyancy_force;
 }
 void compute_vorticity(Particle *p, Particle *neighbor, double W_grad)
 {

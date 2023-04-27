@@ -9,40 +9,40 @@ using namespace nanogui;
 
 void Smoke::update(double delta_t)
 {
-    omp_set_num_threads(THREADNUM);
+    //omp_set_num_threads(THREADNUM);
 
     build_spatial_map();   // build grid based on new particle positions
     update_avg_particle(); // calculate average particle attributes for new grid
 
 #ifdef _OPENMP
-#pragma omp parallel default(shared)
+//#pragma omp parallel default(shared)
     {
 #endif
-#pragma omp for
-    for (int i = 0; i < particle_map.size(); i++)
-    {
-        auto pair = particle_map.begin();
-        advance(pair, i);
-        for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
+//#pragma omp for
+        for (int i = 0; i < particle_map.size(); i++)
         {
-            for (int dy = -1; dy <= 1; ++dy)
+            auto pair = particle_map.begin();
+            advance(pair, i);
+            for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
             {
-                for (int dz = -1; dz <= 1; ++dz)
+                for (int dy = -1; dy <= 1; ++dy)
                 {
-                    nanogui::Vector3f pos_shift = nanogui::Vector3f(dx * width / grid_width, dy * height / grid_height, dz * depth / grid_depth);
-                    uint64_t key = hash_position(avg_particle_map[pair.first]->pos + pos_shift);
-                    if (!avg_particle_map[pair.first])
+                    for (int dz = -1; dz <= 1; ++dz)
                     {
-                        std::cout << "No neighbour particles" << std::endl;
-                    }
-                    else
-                    {
-                        nsp.update_with_neighbour_cells(pair.second, avg_particle_map[key], delta_t);
+                        nanogui::Vector3f pos_shift = nanogui::Vector3f(dx * width / grid_width, dy * height / grid_height, dz * depth / grid_depth);
+                        uint64_t key = hash_position(avg_particle_map[pair->first]->pos + pos_shift);
+                        if (!avg_particle_map[pair->first])
+                        {
+                            std::cout << "No neighbour particles" << std::endl;
+                        }
+                        else
+                        {
+                            nsp.update_with_neighbour_cells(pair->second, avg_particle_map[key], delta_t);
+                        }
                     }
                 }
             }
         }
-    }
 
         auto p_it = particles.begin();
         while (p_it != particles.end())
@@ -57,6 +57,9 @@ void Smoke::update(double delta_t)
                 p_it++;
             }
         }
+#ifdef _OPENMP
+    }
+#endif
 }
 
 void Smoke::generateParticles(const Emittor emittor, int num_particles)
