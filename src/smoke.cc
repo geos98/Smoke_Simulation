@@ -23,44 +23,50 @@ void Smoke::update(double delta_t)
         {
             auto pair = particle_map.begin();
             advance(pair, i);
-            for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
             {
-                for (int dy = -1; dy <= 1; ++dy)
+                for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
                 {
-                    for (int dz = -1; dz <= 1; ++dz)
+                    for (int dy = -1; dy <= 1; ++dy)
                     {
-                        nanogui::Vector3f pos_shift = nanogui::Vector3f(dx * width / grid_width, dy * height / grid_height, dz * depth / grid_depth);
-                        uint64_t key = hash_position(avg_particle_map[pair->first]->pos + pos_shift);
-                        if (!avg_particle_map[pair->first])
+                        for (int dz = -1; dz <= 1; ++dz)
                         {
-                            std::cout << "No neighbour particles" << std::endl;
-                        }
-                        else
-                        {
-                            if (avg_particle_map.find(key) != avg_particle_map.end())
-                                nsp.update_with_neighbour_cells(pair->second, avg_particle_map[key], delta_t);
+                            nanogui::Vector3f pos_shift = nanogui::Vector3f(dx, dy, dz);
+                            uint64_t key = hash_position(avg_particle_map[pair->first]->pos + pos_shift);
+
+                            if (avg_particle_map.find(key) != avg_particle_map.end()) {
+                                if (!avg_particle_map[key])
+                                {
+                                    continue;
+                                }
+                                else
+                                {
+                                    nsp.update_with_neighbour_cells(pair->second, avg_particle_map[key], delta_t);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+        std::cout << omp_get_thread_num() << std::endl;
 #ifdef _OPENMP
     }
 #endif
 
-        auto p_it = particles.begin();
-        while (p_it != particles.end())
+    // #pragma omp parallel for
+    auto p_it = particles.begin();
+    while (p_it != particles.end())
+    {
+        p_it->update(delta_t);
+        if (p_it->lifespan <= 0)
         {
-            p_it->update(delta_t);
-            if (p_it->lifespan <= 0)
-            {
-                particles.erase(p_it++);
-            }
-            else
-            {
-                p_it++;
-            }
+            particles.erase(p_it++);
         }
+        else
+        {
+            p_it++;
+        }
+    }
 }
 
 void Smoke::generateParticles(const Emittor emittor, int num_particles)
@@ -112,9 +118,9 @@ uint64_t Smoke::hash_position(nanogui::Vector3f pos)
 
     // return (x_box * p1) ^ (y_box * p2) ^ (z_box * p3);
 
-    int64_t ix = static_cast<int64_t>(std::floor(pos[0] / grid_width));
-    int64_t iy = static_cast<int64_t>(std::floor(pos[1] / grid_height));
-    int64_t iz = static_cast<int64_t>(std::floor(pos[2] / grid_depth));
+    int64_t ix = static_cast<int64_t>(std::floor(pos[0] * width / grid_width));
+    int64_t iy = static_cast<int64_t>(std::floor(pos[1] * height / grid_height));
+    int64_t iz = static_cast<int64_t>(std::floor(pos[2] * depth / grid_depth));
 
     // Combine the grid indices into a single 64-bit integer
     // by interleaving the bits of the x, y, and z indices.
