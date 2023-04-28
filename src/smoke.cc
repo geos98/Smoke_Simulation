@@ -1,3 +1,4 @@
+#include <omp.h>
 #include "smoke.hh"
 
 using namespace std;
@@ -7,15 +8,15 @@ void Smoke::update(double delta_t)
 {
     build_spatial_map();   // build grid based on new particle positions
     update_avg_particle(); // calculate average particle attributes for new grid
-
-    // #pragma omp parallel for
+    int layer = smoke_param->two_layers ? 2 : 1;
     for (auto &pair : particle_map)
     {
-        for (int dx = -1; dx <= 1; ++dx) // loop over all neighbour cells
+        // #pragma omp parallel for
+        for (int dx = -layer; dx <= layer; ++dx) // loop over all neighbour cells
         {
-            for (int dy = -1; dy <= 1; ++dy)
+            for (int dy = -layer; dy <= layer; ++dy)
             {
-                for (int dz = -1; dz <= 1; ++dz)
+                for (int dz = -layer; dz <= layer; ++dz)
                 {
                     nanogui::Vector3f pos_shift = nanogui::Vector3f(dx, dy, dz);
                     uint64_t key = hash_position(avg_particle_map[pair.first]->pos + pos_shift);
@@ -25,20 +26,25 @@ void Smoke::update(double delta_t)
                     }
                     else
                     {
-                        nsp.update_with_neighbour_cells(pair.second, avg_particle_map[key], delta_t);
+                        nsp.update_with_neighbour_cells(pair.second, avg_particle_map[key].get(), delta_t);
                     }
                 }
             }
         }
     }
 
-    // #pragma omp parallel for
-    auto p_it = particles.begin();
-    while (p_it != particles.end())
+    // #pragma omp parallel
+    //     {
+    // #pragma omp sections
+    //         {
+    // #pragma omp section
+    //             {
+    for (auto p_it = particles.begin(); p_it != particles.end();)
     {
         p_it->update(delta_t);
         if (p_it->lifespan <= 0)
         {
+            // #pragma omp critical
             particles.erase(p_it++);
         }
         else
@@ -47,12 +53,18 @@ void Smoke::update(double delta_t)
         }
     }
 }
+// }
+// }
+// }
 
 void Smoke::generateParticles(const Emittor emittor, int num_particles)
 {
+    // #pragma omp parallel for
     for (int i = 0; i < num_particles; ++i)
     {
-        particles.emplace_back(emittor.emit());
+        Particle new_particle = emittor.emit(smoke_param);
+        // #pragma omp critical
+        particles.emplace_back(new_particle);
     }
 }
 
@@ -62,7 +74,6 @@ void Smoke::build_spatial_map()
     for (auto &p : particles)
     {
         uint64_t hash_pos = hash_position(p.pos);
-        // std::cout << "hash_position " << hash_pos << std::endl;
         particle_map[hash_pos].emplace_back(&p);
     }
 }
@@ -72,9 +83,9 @@ void Smoke::update_avg_particle()
     avg_particle_map.clear();
     for (auto &pair : particle_map)
     {
-        Particle *p = new Particle();
-        avg_particle_map[pair.first] = new Particle();
-        nsp.update_avg_p(pair.second, avg_particle_map[pair.first]);
+        std::shared_ptr<Particle> p = std::make_shared<Particle>(smoke_param);
+        avg_particle_map[pair.first] = p;
+        nsp.update_avg_p(pair.second, avg_particle_map[pair.first].get());
     }
 }
 
