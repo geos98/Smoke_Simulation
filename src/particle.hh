@@ -1,56 +1,67 @@
 #ifndef PARTICLE_HH
 #define PARTICLE_HH
 #include <nanogui/nanogui.h>
+#include "smoke_param.hh"
+
+using nanogui::Vector2f;
+using nanogui::Vector3f;
+using nanogui::Vector4f;
 
 class Particle
 {
 
 public:
-    Particle()
+    Particle(SmokeParameter *smoke_param)
     {
-        this->size = 3;
-        this->lifespan = 30.0f;
-        this->L = size * 2.0f;
-        this->M = 0.1f;
+        this->pos = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
+        this->velocity = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
+        this->forces = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
+        this->sp = smoke_param;
+        this->color = smoke_param->init_color;
+        this->lifespan = smoke_param->lifespan;
     };
-    Particle(nanogui::Vector3f pos, nanogui::Vector3f velocity, nanogui::Vector3f forces, nanogui::Vector4f color, float size)
+    Particle(
+        Vector3f pos,
+        Vector3f velocity,
+        Vector3f forces,
+        SmokeParameter *smoke_param)
     {
         this->pos = pos;
         this->velocity = velocity;
         this->forces = forces;
-        this->color = color;
-        this->size = size;
-        this->lifespan = 30.0f;
-        this->L = size * 2.0f;
-        this->M = 0.1f;
+        this->sp = smoke_param;
+        this->color = smoke_param->init_color;
+        this->lifespan = smoke_param->lifespan;
     };
     ~Particle(){};
 
-    nanogui::Vector3f pos;
-    nanogui::Vector3f velocity;
-    nanogui::Vector3f forces;
-    nanogui::Vector4f color; // R, G, B, alpha
+    // ---------------------------------------------------------
+    // Smoke parameters
+    // ---------------------------------------------------------
+    SmokeParameter *sp; // pointer to smoke parameters
 
-    float size;
-    float lifespan;
+    // ---------------------------------------------------------
+    // Particle attributes
+    // ---------------------------------------------------------
+    double density = 0.0001f;                            // particle density
+    double pressure = 0.0001f;                           // particle pressure
+    double temperature = 27.0f;                          // particle temperature
+    double lifespan = 3.0f;                              // particle lifespan
+    Vector3f pos;                                        // position
+    Vector3f velocity;                                   // velocity
+    Vector3f forces;                                     // forces on the particle
+    Vector4f color;                                      // R, G, B, alpha
+    Vector2f uv = Vector2f(0.5, 0.5);                    // uv coordinates
+    Vector3f buoyancy = Vector3f(0.0f, 0.0f, 0.0f);      // buoyancy force
+    Vector3f vorticity = Vector3f(0.0f, 0.0f, 0.0f);     // vorticity before confining
+    Vector3f vorticity_new = Vector3f(0.0f, 0.0f, 0.0f); // vorticity after confining
+    // Vector3f vorticity_confine = Vector3f(0.0f, 0.0f, 0.0f); // vorticity confinement force
 
-    // Navier Stoke
-    double L; // smoothed particle length
-    double M; // particle mass
-    double density = 0.0001f;
-    double base_density = 0.0001f;
-    double pressure = 0.0001f;
-    double temperature = 27.0f;
-    double ambient_temp = 27.0f;
-    double fluid_stiffness = 100.0f;
-    nanogui::Vector3f buoyancy = nanogui::Vector3f(0.0f, -0.001f, 0.0f);
-    nanogui::Vector3f vorticity = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
-    nanogui::Vector3f vorticity_new = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
-    nanogui::Vector3f vorticity_confine = nanogui::Vector3f(0.0f, 0.0f, 0.0f);
-    nanogui::Vector3f gravity = nanogui::Vector3f(0.0f, -9.81f, 0.0f);
-    double buoyancy_coefficient = 1.0f;
-    double thermal_expansion_coefficient = 0.5f;
+    // ---------------------------------------------------------
+    // Methods
+    // ---------------------------------------------------------
     void update(double delta_t);
+    double L() const { return sp->L * sp->size; }; // calculate the particle length
 };
 
 #endif
