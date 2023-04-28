@@ -132,14 +132,25 @@ void SmokeSimulator::draw()
 
     // update particles positions
     smoke.generateParticles(emittor, 500);
-    smoke.update(1 / frames_per_sec);
+
+    auto now = chrono::high_resolution_clock::now();
+    double delta_t = std::chrono::duration<double>(now - prev_time).count();
+    prev_time = now;
+    if (delta_t > 10) {
+        // probably the first frame
+        return;
+    }
+
+    std::cout << 1.0 / delta_t << " fps" << std::endl;
+
+    smoke.update(delta_t );
+    
     nanogui::MatrixXf positions(4, smoke.particles.size());
     nanogui::MatrixXf colors(4, smoke.particles.size());
     nanogui::MatrixXf sizes(1, smoke.particles.size());
     nanogui::MatrixXf uv(2, smoke.particles.size());
     for (size_t idx_p = 0; const auto &p : smoke.particles)
     {
-
         positions.col(idx_p) << p.pos, 1;
         colors.col(idx_p) << p.color;
         sizes.col(idx_p) << p.sp->size;

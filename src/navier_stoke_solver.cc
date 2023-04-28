@@ -53,6 +53,7 @@ nanogui::Vector3f cubic_spline_kernel_gradient(nanogui::Vector3f dxyz, double h)
     nanogui::Vector3f gradient = dW * dxyz / r;
     return gradient;
 }
+
 double cubic_spline_kernel_laplacian(nanogui::Vector3f dxyz, double h)
 {
     double r = dxyz.norm();
@@ -116,7 +117,7 @@ nanogui::Vector3f compute_vorticity_confinement_force(Particle *p, Particle *nei
     return vorticity_confine;
 }
 
-void NavierStokeSolver::update_avg_p(std::vector<Particle *> grid_particles, Particle *avg_p)
+void NavierStokeSolver::update_avg_p(const std::vector<Particle *>& grid_particles, Particle *avg_p)
 {
     if (grid_particles.size() == 0)
         return;
@@ -184,7 +185,7 @@ nanogui::Vector3f compute_damping_force(Particle *p)
     return p->velocity * (-0.2f * std::max(p->pos[1], 0.0f));
 }
 
-void NavierStokeSolver::update_with_neighbour_cells(std::vector<Particle *> grid_particles, Particle *neighbour_p, double delta_t)
+void NavierStokeSolver::update_with_neighbour_cells(const std::vector<Particle *>& grid_particles, Particle *neighbour_p, double delta_t)
 {
     if (grid_particles.size() == 0)
         return;

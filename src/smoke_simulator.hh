@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <chrono>
 
 #include "smoke.hh"
 #include "camera.hh"
@@ -20,8 +21,10 @@ public:
     // -------------------------------------------------------------
     // Simulation parameters
     // -------------------------------------------------------------
-    float frames_per_sec = 120.0f;
-    float delta_t = 1.0f / frames_per_sec;
+    // float frames_per_sec = 120.0f;
+    // float delta_t = 1.0f / frames_per_sec;
+
+    std::chrono::high_resolution_clock::time_point prev_time;
 
     // -------------------------------------------------------------
     // GUI methods
