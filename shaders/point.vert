@@ -3,18 +3,16 @@
 uniform mat4 u_view_projection;
 uniform mat4 u_model;
 
-// uniform float u_normal_scaling;
-// uniform float u_height_scaling;
-
 in vec4 in_position;
 in float in_size;
 in vec4 in_color;
+in vec2 in_uv;
 
 // out vec4 v_position;
 // out vec4 v_normal;
-// out vec2 v_uv;
 // out vec4 v_tangent;
 
+out vec2 v_uv;
 out vec4 vertexColor;
 
 void main() {
@@ -27,4 +25,5 @@ void main() {
   gl_PointSize = finalSize;
   gl_Position = pos;
   vertexColor = in_color;
+  v_uv = in_uv;
 }
