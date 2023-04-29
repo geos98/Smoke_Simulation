@@ -7,10 +7,13 @@
 
 using namespace std;
 using namespace nanogui;
+std::vector<omp_lock_t> bin_locks = std::vector<omp_lock_t>(THREADNUM);
 
 void Smoke::update(double delta_t)
 {
     omp_set_num_threads(THREADNUM);
+    for (int l = 0; l < THREADNUM; l++)
+        omp_init_lock(&bin_locks[l]);
 
     build_spatial_map();   // build grid based on new particle positions
     int layer = smoke_param->two_layers ? 2 : 1;
@@ -62,17 +65,20 @@ void Smoke::update(double delta_t)
     //         {
     // #pragma omp section
     //             {
-    for (auto p_it = particles.begin(); p_it != particles.end();)
+#pragma omp for
+    for (int j = 0; j < particles.size();j++)
     {
-        p_it->update(delta_t);
-        if (p_it->lifespan <= 0)
+        auto p_it = particles.begin();
+        advance(p_it, j);
         {
-            // #pragma omp critical
-            particles.erase(p_it++);
-        }
-        else
-        {
-            p_it++;
+            p_it->update(delta_t);
+            if (p_it->lifespan <= 0)
+            {
+                // #pragma omp critical
+                omp_set_lock(&bin_locks[omp_get_thread_num()]);
+                particles.erase(p_it);
+                omp_unset_lock(&bin_locks[omp_get_thread_num()]);
+            }
         }
     }
 }
