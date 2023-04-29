@@ -127,6 +127,11 @@ int main(int argc, char **argv)
 
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
+    double prevTime = 0.0;
+    double curTime = 0.0;
+    double timeDiff;
+    unsigned int counter = 0;
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -136,6 +141,19 @@ int main(int argc, char **argv)
 
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        curTime = glfwGetTime();
+        timeDiff = curTime - prevTime;
+        counter++;
+        if (timeDiff >= 1.0 / 30.0) {
+            std::string FPS = std::to_string((1.0 / timeDiff) * counter);
+            std::string ms = std::to_string((timeDiff / counter) * 1000);
+            std::string newTitle = "Smoke Sim - " + FPS + "FPS / " + ms + "ms";
+            glfwSetWindowTitle(window, newTitle.c_str());
+            prevTime = curTime;
+            counter = 0;
+            
+        }
 
         sim->draw();
 

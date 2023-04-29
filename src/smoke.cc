@@ -51,7 +51,7 @@ void Smoke::update(double delta_t)
                 }
             }
         }
-        std::cout << omp_get_thread_num() << std::endl;
+        //std::cout << omp_get_thread_num() << std::endl;
 #ifdef _OPENMP
     }
 #endif
