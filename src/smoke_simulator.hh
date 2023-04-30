@@ -7,6 +7,7 @@
 #include "smoke.hh"
 #include "camera.hh"
 #include "collision/collisionObject.hh"
+#include "sim_param.hh"
 
 class SmokeSimulator
 {
@@ -23,6 +24,8 @@ public:
     // -------------------------------------------------------------
     float frames_per_sec = 120.0f;
     float delta_t = 1.0f / frames_per_sec;
+
+    SimParameter* sim_param = new SimParameter();
 
     // -------------------------------------------------------------
     // GUI methods

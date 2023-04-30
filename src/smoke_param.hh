@@ -29,6 +29,7 @@ public:
     // Smoke parameters
     // ---------------------------------------------------------
     bool two_layers = false;                                                // whether uses two layers
+    bool hide_plane = false;                                                // whether hide the plane barrier
     Parameter size = Parameter{1.0f, 1.0f, 10.0f};                          // particle size
     Parameter lifespan = Parameter{3.0f, 1.0f, 10.0f};                      // particle lifespan
     Parameter L = Parameter{1.5f, 1.0f, 3.0f};                              // smoothed particle length

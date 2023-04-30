@@ -160,8 +160,10 @@ void SmokeSimulator::draw()
     shader->uploadAttrib("in_uv", uv, false);
     shader->drawArray(GL_POINTS, 0, smoke.particles.size());
 
-    for (CollisionObject* co : *collision_objects) {
-        co->render(*shader);
+    if (!sim_param->hide_plane) {
+        for (CollisionObject* co : *collision_objects) {
+            co->render(*shader);
+        }
     }
 }
 
@@ -193,6 +195,16 @@ void SmokeSimulator::initGUI()
     layerLabel->setFixedWidth(150);
     layerCheckBox->setCallback([this](bool checked)
                                { this->smoke.smoke_param->two_layers = checked; });
+    // ----------------------------------------------------------
+    // Show plane
+    // ----------------------------------------------------------
+    nanogui::Widget* layerWidget2 = new nanogui::Widget(nanoguiWindow);
+    layerWidget2->setLayout(new GridLayout(nanogui::Orientation::Horizontal, 3, nanogui::Alignment::Minimum, 0, 5));
+    Label* layerLabel2 = new Label(layerWidget2, "Hide Plane Barrier");
+    nanogui::CheckBox* layerCheckBox2 = new nanogui::CheckBox(layerWidget2, "");
+    layerLabel2->setFixedWidth(150);
+    layerCheckBox2->setCallback([this](bool checked)
+        { this->sim_param->hide_plane = checked; });
     // ----------------------------------------------------------
     // Sliders
     // ----------------------------------------------------------
