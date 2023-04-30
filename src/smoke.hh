@@ -4,6 +4,7 @@
 #include "navier_stoke_solver.hh"
 #include "smoke_param.hh"
 #include "collision/collisionObject.hh"
+#include "collision/plane.hh"
 
 using namespace std;
 class Smoke
