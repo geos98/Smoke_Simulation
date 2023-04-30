@@ -28,12 +28,14 @@ include_directories(
   ${NANOGUI_EXTRA_INCS}
 )
 
+
 #-------------------------------------------------------------------------------
 # Set link directories
 #-------------------------------------------------------------------------------
 link_directories(
   ${FREETYPE_LIBRARY_DIRS}
 )
+
 
 #-------------------------------------------------------------------------------
 # Add executable
@@ -44,7 +46,12 @@ target_link_libraries(smoke_simulation
     nanogui ${NANOGUI_EXTRA_LIBS}
     ${FREETYPE_LIBRARIES}
     ${CMAKE_THREADS_INIT}
+    ${OpenMP_CXX_LIBRARIES}
 )
+
+# if(OpenMP_CXX_FOUND)
+#     target_link_libraries(smoke_simulation PUBLIC OpenMP::OpenMP_CXX)
+# endif()
 
 #-------------------------------------------------------------------------------
 # Platform-specific configurations for target

@@ -1,15 +1,24 @@
+#include <random>
 #include "emittor.hh"
+#include "smoke_param.hh"
 
 using namespace nanogui;
 
-Particle Emittor::emit() const
+Particle Emittor::emit(SmokeParameter *sp) const
 {
-    double a = (((double)rand() / (double)RAND_MAX) - 0.5);
-    double b = (((double)rand() / (double)RAND_MAX) - 0.5);
-    double c = (((double)rand() / (double)RAND_MAX) - 0.5);
-    Vector3f init_pos = Vector3f(a / 100, b / 1000, c / 100);
-    Vector3f rand_velocity = Vector3f(a, b, c);
-    Vector3f init_forces = Vector3f(0, 0, 0);
-    float init_size = 1;
-    return Particle(init_pos, rand_velocity, init_forces, init_color, init_size);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> angle_dis(0, 2 * M_PI);
+    std::uniform_real_distribution<double> radius_dis(0, 5);
+    std::uniform_real_distribution<double> height_dis(0, 5);
+    std::uniform_real_distribution<double> vel_dis(5, 10);
+
+    float angle = angle_dis(gen);
+    float radius = radius_dis(gen);
+    float height = height_dis(gen);
+    Vector3f init_pos(radius * cos(angle), height - 5, radius * sin(angle));
+    Vector3f rand_velocity(radius * cos(angle), vel_dis(gen) * 10, radius * sin(angle)); // Upward velocity
+    Vector3f init_forces(radius * cos(angle), 0, radius * sin(angle));
+
+    return Particle(init_pos, rand_velocity, init_forces, sp);
 }

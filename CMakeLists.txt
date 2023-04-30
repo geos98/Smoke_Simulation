@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 2.8)
 project(Smoke_Simulation)
 
 #-------------------------------------------------------------------------------
+# Set compiler
+#-------------------------------------------------------------------------------
+# if (APPLE)
+#     set(CMAKE_C_COMPILER "/opt/homebrew/opt/llvm/bin/clang")
+#     set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/llvm/bin/clang++")
+# endif()
+
+
+
+#-------------------------------------------------------------------------------
 # Build options
 #-------------------------------------------------------------------------------
 option(BUILD_DEBUG     "Build with debug settings"    OFF)
@@ -48,13 +58,16 @@ if(APPLE)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     set(GCC_CXX_FLAGS "-std=gnu++11 -m64")
+    
 
     if(BUILD_DEBUG)
       set(CMAKE_BUILD_TYPE Debug)
       set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -g")
     else(BUILD_DEBUG)
-      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -O3")
-      set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -fopenmp")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -O3")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -funroll-loops")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -Wno-narrowing")
+      set(CLANG_CXX_FLAGS "${CLANG_CXX_FLAGS} -Wno-deprecated-register")
     endif(BUILD_DEBUG)
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_CXX_FLAGS}")
@@ -172,14 +185,35 @@ endif(WIN32)
 # Required packages
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
+find_package(OpenMP)
 if(NOT WIN32)
   find_package(Freetype REQUIRED)
 endif()
 
+
+if (APPLE)
+  if(NOT OpenMP_CXX_FOUND)
+      message(STATUS "Manually setting OpenMP paths")
+      set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
+      set(OpenMP_CXX_LIB_NAMES "/opt/homebrew/opt/libomp/lib/libomp.dylib")
+      set(OpenMP_CXX_LIBRARIES "${OpenMP_CXX_LIB_NAMES}")
+      set(OpenMP_CXX_FOUND TRUE)
+  endif()
+  if(OpenMP_CXX_FOUND)
+    set(GCC_CXX_FLAGS "${GCC_CXX_FLAGS} -fopenmp")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  endif()
+endif()
+
+
+
 #-------------------------------------------------------------------------------
 # Add subdirectories
 #-------------------------------------------------------------------------------
+message(STATUS "Manually setting OpenMP paths")
 add_subdirectory(src)
+
+
 
 # Install settings
 set(CMAKE_INSTALL_PREFIX "${Smoke_Simulation_SOURCE_DIR}/")

@@ -2,6 +2,7 @@
 #include <list>
 #include "emittor.hh"
 #include "navier_stoke_solver.hh"
+#include "smoke_param.hh"
 
 class Smoke
 {
@@ -22,8 +23,10 @@ public:
     ~Smoke(){};
 
     NavierStokeSolver nsp;
-    std::list<Particle> particles;
 
+    // ---------------------------------------------------------
+    // Grid attributes
+    // ---------------------------------------------------------
     int width;
     int height;
     int depth;
@@ -31,11 +34,22 @@ public:
     int grid_height;
     int grid_depth;
 
+    // ---------------------------------------------------------
+    // Smoke attributes
+    // ---------------------------------------------------------
+    std::list<Particle> particles;
+    SmokeParameter *smoke_param = new SmokeParameter();
+
+    // ---------------------------------------------------------
+    // Methods
+    // ---------------------------------------------------------
     void generateParticles(Emittor emittor, int num_particles);
     void update(double delta_t);
     void build_spatial_map();
-    uint64_t hash_position(nanogui::Vector3f pos);
+    void update_avg_particle();
 
 private:
+    uint64_t hash_position(nanogui::Vector3f pos);
     std::unordered_map<uint64_t, std::vector<Particle *>> particle_map;
+    std::unordered_map<uint64_t, std::shared_ptr<Particle>> avg_particle_map;
 };

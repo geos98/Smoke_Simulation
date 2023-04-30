@@ -9,7 +9,7 @@ using std::pow;
 using namespace nanogui;
 
 // for calculating density
-double cubic_spline_kernel(double r, double h)
+double cubic_spline_kernel(double r /* distance */, double h)
 {
     double q = r / h;
 
@@ -28,112 +28,6 @@ double cubic_spline_kernel(double r, double h)
         return 0;
     }
 }
-
-// Smoothed Particle Hydrodynamics (SPH). Uses the super-simple
-// approch of Matthias Müller: https://matthias-research.github.io/pages/publications/sca03.pdf
-// -> New Particles enter the domain slightly below the top with a velocity
-// directed to the bottom left (like pouring in the beer)
-// ----------
-// Solution Strategy:
-// Discretize the fluid by N particles (i=0, 1, ..., N-1) that smooth
-// their properties radially with some smoothing kernels. Then the Momentum
-// Equation discretizes to
-
-// Duᵢ/Dt = Pᵢ + Vᵢ + G
-// with
-// uᵢ : The velocity of the i-th smoothed particle
-// Pᵢ : The pressure forces acting on the i-th smoothed particle
-// Vᵢ : The viscosity forces acting on the i-th smoothed particle
-// G  : The gravity forces (acting equally on all particles)
-
-// This yields a set of N ODEs each for the two velocity components (in case
-// of 2D) of the particles. These can be solved using a (simpletic) integrator
-// to advance the position of the particles.
-// Let xᵢ be the 2D position of each smoothed particle.
-// Let L be the smoothing length of each smoothed particle.
-// Let M be the mass of each smoothed particle.
-// ------
-
-// Algorithm
-// (for details on the chosen smoothing kernels, see the paper mentioned above)
-// 1. Compute the rhs for each particle Fᵢ
-//     1.1 Compute the distances between all particle positions
-//         dᵢⱼ = || xᵢ − xⱼ ||₂
-//     1.2 Compute the density at each particle's position
-//         ρᵢ = (315 M) / (64 π L⁹) ∑ⱼ (L² − dᵢⱼ²)³
-//     1.3 Compute the pressure at each particle's position (κ is the isentropic
-//         exponent, ρ₀ is a base density)
-//         pᵢ = κ * (ρ − ρ₀)
-//     1.4 Compute the pressure force of each particle
-//         Pᵢ = (− (45 M) / (π L⁶)) ∑ⱼ − (xⱼ − xᵢ) / (dᵢⱼ) (pⱼ + pᵢ) / (2 ρⱼ) (L − dᵢⱼ)²
-//     1.5 Compute the viscosity force of each particle
-//         Vᵢ = (45 μ M) / (π L⁶) ∑ⱼ (uⱼ − uᵢ) / (ρⱼ) (L − dᵢⱼ)
-//     1.6 Add up the RHS
-//         Fᵢ = Pᵢ + Vᵢ + G
-
-// 2. Integrate the Ordinary Differential Equation  "ρ Duᵢ/Dt = Fᵢ" with a
-//    Δt timestep
-//     2.1 Update the particles' velocities
-//         uᵢ ← uᵢ + Δt Fᵢ / ρᵢ
-//     2.2 Update the particles' positions
-//         xᵢ ← xᵢ + Δt uᵢ
-
-// void NavierStokeSolver::update(std::vector<Particle *> grid_particles, double delta_t)
-// {
-//     if (grid_particles.size() == 0)
-//         return;
-//     for (Particle *p : grid_particles)
-//     {
-//         // 1 Compute the distances particle positions to the center
-//         // 2 Compute the density at each grid's position
-//         // ρᵢ = (315 M) / (64 π L⁹) ∑ⱼ (L² − dᵢⱼ²)³
-//         double sum = 0;
-//         p->density = 0;
-//         for (Particle *q : grid_particles)
-//         {
-//             if (q == p)
-//                 continue;
-//             nanogui::Vector3f diff_pos = p->pos - q->pos;
-//             double d = diff_pos.norm();
-//             sum += pow(p->L * p->L - d * d, 3);
-//             p->density += q->M * cubic_spline_kernel(d, (double)1);
-//         }
-//         // p->density = std::max(sum * (315.0f * p->M) / (64.0f * M_PI * pow(p->L, 9.0f)), p->base_density);
-//         // p = κ * (ρ − ρ₀)
-//         p->pressure = std::max(p->fluid_stiffness * (p->density - p->base_density), (double)0.0001f);
-//     }
-
-//     for (Particle *p : grid_particles)
-//     {
-//         // 4 Compute the pressure force of each particle
-//         // Pᵢ = (− (45 M) / (π L⁶)) ∑ⱼ [− (xⱼ − xᵢ) / (dᵢⱼ)] [(pⱼ + pᵢ) / (2 ρⱼ)] (L − dᵢⱼ)²
-//         // 5 Compute the viscosity force of each particle
-//         // Vᵢ = (45 μ M) / (π L⁶) ∑ⱼ (uⱼ − uᵢ) / (ρⱼ) (L − dᵢⱼ)
-//         nanogui::Vector3f pforce_vec = nanogui::Vector3f(0, 0, 0); // pressure forcs
-//         nanogui::Vector3f viscosity_vec = nanogui::Vector3f(0, 0, 0);
-//         for (Particle *q : grid_particles)
-//         {
-//             if (q == p)
-//                 continue;
-//             nanogui::Vector3f diff_pos = p->pos - q->pos;
-//             double dist_ij = diff_pos.norm();
-//             pforce_vec += (diff_pos / dist_ij) * ((p->pressure + q->pressure) * pow((p->L - dist_ij), 2.0f) / (2.0f * q->density));
-//             viscosity_vec += (q->velocity - p->velocity) * (p->L - dist_ij) / q->density;
-//         }
-//         nanogui::Vector3f pressure_force = pforce_vec * (-45.0f * p->M) / (M_PI * pow(p->L, 6.0f));
-//         nanogui::Vector3f viscosity_force = viscosity_vec * 45.0f * p->M / (M_PI * pow(p->L, 6.0f));
-//         std::cout << pressure_force << std::endl;
-//         // 6 Add up the RHS
-//         // Fᵢ = Pᵢ + Vᵢ + G
-//         p->forces = pressure_force + viscosity_force + p->gravity;
-//     }
-//     for (Particle *p : grid_particles)
-//     {
-//         p->velocity += delta_t * p->forces / p->density;
-//         p->pos += delta_t * p->velocity;
-//         p->update(delta_t);
-//     }
-// }
 
 nanogui::Vector3f cubic_spline_kernel_gradient(nanogui::Vector3f dxyz, double h)
 {
@@ -159,7 +53,6 @@ nanogui::Vector3f cubic_spline_kernel_gradient(nanogui::Vector3f dxyz, double h)
     nanogui::Vector3f gradient = dW * dxyz / r;
     return gradient;
 }
-
 double cubic_spline_kernel_laplacian(nanogui::Vector3f dxyz, double h)
 {
     double r = dxyz.norm();
@@ -184,108 +77,150 @@ double cubic_spline_kernel_laplacian(nanogui::Vector3f dxyz, double h)
     return d2W;
 }
 
-void NavierStokeSolver::update_rho_p(std::vector<Particle *> grid_particles, Particle *avg_p, double delta_t)
+double update_particle_temperature(Particle *p, Particle *neighbor, double delta_t, double W_grad)
+{
+    double diffusion_coeff = 0.024f;
+    double dT = std::max(p->temperature - neighbor->temperature, (double)0.001f);
+    return delta_t * diffusion_coeff * dT * W_grad;
+}
+
+nanogui::Vector3f compute_vorticity(Particle *p, Particle *neighbor, double W_grad)
+{
+    nanogui::Vector3f vorticity = nanogui::Vector3f(0, 0, 0);
+    nanogui::Vector3f d = neighbor->pos - p->pos;
+    // Compute the velocity difference between the particles
+    nanogui::Vector3f dv = neighbor->velocity - p->velocity;
+
+    // Calculate the contribution to the vorticity from this neighbor
+    vorticity[0] += (dv[1] * d[2] - dv[2] * d[1]) * W_grad;
+    vorticity[1] += (dv[2] * d[0] - dv[0] * d[2]) * W_grad;
+    vorticity[2] += (dv[0] * d[1] - dv[1] * d[0]) * W_grad;
+    return vorticity;
+}
+
+nanogui::Vector3f compute_vorticity_confinement_force(Particle *p, Particle *neighbor, double W_grad)
+{
+    nanogui::Vector3f vorticity_confine = nanogui::Vector3f(0, 0, 0);
+    // double epsilon = 0.01f;
+    double epsilon = p->sp->vorticity_epsilon;
+
+    // Compute the vorticity difference between the particles
+    double dvorticity_magnitude = (neighbor->vorticity - p->vorticity).norm();
+
+    // Calculate the contribution to the gradient of the vorticity magnitude from this neighbor
+    nanogui::Vector3f grad_vorticity_magnitude = dvorticity_magnitude * (neighbor->pos - p->pos) * W_grad;
+
+    vorticity_confine[0] = epsilon * p->L() * (grad_vorticity_magnitude[1] * p->vorticity[2] - grad_vorticity_magnitude[2] * p->vorticity[1]);
+    vorticity_confine[1] = epsilon * p->L() * (grad_vorticity_magnitude[2] * p->vorticity[0] - grad_vorticity_magnitude[0] * p->vorticity[2]);
+    vorticity_confine[2] = epsilon * p->L() * (grad_vorticity_magnitude[0] * p->vorticity[1] - grad_vorticity_magnitude[1] * p->vorticity[0]);
+    return vorticity_confine;
+}
+
+void NavierStokeSolver::update_avg_p(std::vector<Particle *> grid_particles, Particle *avg_p)
 {
     if (grid_particles.size() == 0)
         return;
-    avg_p = new Particle();
+
     for (Particle *q : grid_particles)
     {
         avg_p->pos += q->pos;
         avg_p->velocity += q->velocity;
         avg_p->forces += q->forces;
+        avg_p->vorticity += q->vorticity;
+        avg_p->buoyancy += q->buoyancy;
+        avg_p->temperature += q->temperature;
     }
     avg_p->pos /= grid_particles.size();
     avg_p->velocity /= grid_particles.size();
     avg_p->forces /= grid_particles.size();
+    avg_p->vorticity /= grid_particles.size();
+    avg_p->buoyancy /= grid_particles.size();
+    avg_p->temperature /= grid_particles.size();
 
-    double total_weight = 0;
     for (Particle *q : grid_particles)
     {
-        nanogui::Vector3f diff_pos = avg_p->pos - q->pos;
-        double d = diff_pos.norm();
-        double weight = cubic_spline_kernel(d, (double)q->L);
-        total_weight += weight;
-        avg_p->density += q->M * weight;
+        avg_p->density += q->sp->M * cubic_spline_kernel((avg_p->pos - q->pos).norm(), (double)q->L());
     }
+    avg_p->pressure = avg_p->sp->fluid_stiffness * avg_p->density;
 
-    avg_p->pressure = avg_p->fluid_stiffness * avg_p->density;
+    // reset and align all particles in the grid with the avg particle
+    for (Particle *p : grid_particles)
+    {
+        p->buoyancy = nanogui::Vector3f(0, 0, 0);
+        p->vorticity_new = nanogui::Vector3f(0, 0, 0);
+        p->density = avg_p->density;
+        p->pressure = avg_p->pressure;
+        p->forces = avg_p->sp->gravity;
+        p->temperature = avg_p->temperature;
+    }
 }
 
-void NavierStokeSolver::simplified_update(std::vector<Particle *> grid_particles, double delta_t)
+nanogui::Vector3f compute_air_drag_force(Particle *p)
+{
+
+    // double air_drag_coefficient = 0.01f;
+    // Calculate the air drag force
+    nanogui::Vector3f air_drag_force = -p->sp->air_drag_coefficient * p->velocity;
+    return air_drag_force;
+}
+nanogui::Vector3f compute_turbulence_force(Particle *p)
+{
+    double turbulence_strength = 0.1f;
+    // Generate a random vector
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(-1, 1);
+
+    nanogui::Vector3f random_vector(dis(gen), dis(gen), dis(gen));
+
+    // Calculate the turbulence force
+    nanogui::Vector3f turbulence_force = turbulence_strength * random_vector;
+
+    return turbulence_force;
+}
+nanogui::Vector3f compute_damping_force(Particle *p)
+{
+    // Damping force based on particle height
+    return p->velocity * (-0.2f * std::max(p->pos[1], 0.0f));
+}
+
+void NavierStokeSolver::update_with_neighbour_cells(std::vector<Particle *> grid_particles, Particle *neighbour_p, double delta_t)
 {
     if (grid_particles.size() == 0)
         return;
 
-    // Get average particle in a grid
-    Particle *p = new Particle();
     for (Particle *q : grid_particles)
     {
-        p->pos += q->pos;
-        p->velocity += q->velocity;
-        p->forces += q->forces;
-    }
-    p->pos /= grid_particles.size();
-    p->velocity /= grid_particles.size();
-    p->forces /= grid_particles.size();
+        // Calculate the kernel gradient for the current distance
+        nanogui::Vector3f d = neighbour_p->pos - q->pos;
+        double distance = d.norm();
+        double W = std::max(cubic_spline_kernel(distance, q->L()), (double)0.0001f);
+        double W_grad = std::max((double)cubic_spline_kernel_gradient(d, q->L()).norm(), (double)0.0001f);
 
-    double total_weight = 0.0f; // for later distribute forces to neighbours
-    for (Particle *q : grid_particles)
-    {
-        // 1 Compute the distances particle positions to the center
-        // 2 Compute the density at each grid's position
-        // ρᵢ = (315 M) / (64 π L⁹) ∑ⱼ (L² − dᵢⱼ²)³
-        nanogui::Vector3f diff_pos = p->pos - q->pos;
-        double d = diff_pos.norm();
-        double weight = cubic_spline_kernel(d, (double)q->L);
-        total_weight += weight;
-        p->density += q->M * weight;
-    }
+        // temperature
+        q->temperature += update_particle_temperature(neighbour_p, q, delta_t, W);
 
-    // p = κ * (ρ − ρ₀)
-    p->pressure = p->fluid_stiffness * p->density;
+        // buoyancy forces
+        // q->buoyancy += compute_buoyancy_force(q->density - neighbour_p->density, q->temperature - q->ambient_temp, buoyancy_coefficient, thermal_expansion_coefficient, q->gravity);
+        // q->forces += q->buoyancy;
 
-    nanogui::Vector3f pforce_vec = nanogui::Vector3f(0, 0, 0); // pressure forces
-    // nanogui::Vector3f pforce_vec = nanogui::Vector3f(0, 0, 0); // pressure forces
-    nanogui::Vector3f viscosity_vec = nanogui::Vector3f(0, 0, 0);
-    for (Particle *q : grid_particles)
-    {
-        // 4 Compute the pressure force of each particle
-        // Pᵢ = (− (45 M) / (π L⁶)) ∑ⱼ [− (xⱼ − xᵢ) / (dᵢⱼ)] [(pⱼ + pᵢ) / (2 ρⱼ)] (L − dᵢⱼ)²
-        // 5 Compute the viscosity force of each particle
-        // Vᵢ = (45 μ M) / (π L⁶) ∑ⱼ (uⱼ − uᵢ) / (ρⱼ) (L − dᵢⱼ)
-
+        // vorticity confinement forces
+        q->forces += compute_vorticity_confinement_force(neighbour_p, q, W_grad);
         // pressure forces
-        if (p->density == 0 || q->density == 0)
-            continue;
-        // double p_factor = -(p->M * (p->pressure / (p->density * p->density)) +
-        //                     q->M * (q->pressure / (q->density * q->density)));
-        double p_factor = -p->M * (p->pressure / (p->density * p->density)) * 2;
-        nanogui::Vector3f kernel_gradient = cubic_spline_kernel_gradient(p->pos - q->pos, q->L);
-        pforce_vec += p_factor * kernel_gradient;
+        double p_factor = -(neighbour_p->sp->M * (neighbour_p->pressure / (neighbour_p->density * neighbour_p->density)) +
+                            q->sp->M * (q->pressure / (q->density * q->density)));
+        nanogui::Vector3f kernel_gradient = cubic_spline_kernel_gradient(neighbour_p->pos - q->pos, q->L());
+        q->forces += p_factor * kernel_gradient;
 
         // viscosity forces
-        double mu = 0.1f; // dynamic viscosity coefficient
-        nanogui::Vector3f v_factor = mu * q->M * (q->velocity - p->velocity) / q->density;
-        double kernel_laplacian = cubic_spline_kernel_laplacian(p->pos - q->pos, q->L);
-        viscosity_vec += v_factor * kernel_laplacian;
+        nanogui::Vector3f v_factor = q->sp->dynamic_viscosity_coefficient * q->sp->M * (q->velocity - neighbour_p->velocity) / q->density;
+        double kernel_laplacian = cubic_spline_kernel_laplacian(neighbour_p->pos - q->pos, q->L());
+        q->forces += v_factor * kernel_laplacian;
 
-        // update density pressure for q
-        std::cout << "v_fac: " << p->pressure << " " << grid_particles.size() << std::endl;
-        q->density = p->density;
-        q->pressure = p->pressure;
-    }
-    // std::cout << "p: " << viscosity_vec << " " << grid_particles.size() << std::endl;
-    // nanogui::Vector3f viscosity_force = viscosity_vec * 45.0f * p->M / (M_PI * pow(p->L, 6.0f));
-    // 6 Add up the RHS Fᵢ = Pᵢ + Vᵢ + G
-    p->forces = pforce_vec + viscosity_vec + p->gravity;
+        // air drag forces
+        q->forces += compute_air_drag_force(q);
 
-    for (Particle *q : grid_particles)
-    {
-        double scale = cubic_spline_kernel((q->pos - p->pos).norm(), p->L) / total_weight;
-        q->forces += p->forces * scale;
-        q->velocity += delta_t * q->forces / p->density;
-        q->pos += delta_t * q->velocity;
-        q->update(delta_t);
+        // compute new vorticity, but update later
+        q->vorticity_new += compute_vorticity(q, neighbour_p, W_grad);
     }
 }
