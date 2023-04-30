@@ -4,6 +4,7 @@
 #include <string>
 
 #include "smoke_simulator.hh"
+#include "collision/plane.hh"
 
 SmokeSimulator *sim = nullptr;
 nanogui::Screen *screen = nullptr;
@@ -126,6 +127,8 @@ int main(int argc, char **argv)
     setGLFWCallbacks();
 
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+
+    //sim->loadCollisionObjects();
 
     while (!glfwWindowShouldClose(window))
     {

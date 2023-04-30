@@ -6,6 +6,7 @@
 
 #include "smoke.hh"
 #include "camera.hh"
+#include "collision/plane.hh"
 
 class SmokeSimulator
 {
@@ -29,6 +30,8 @@ public:
     bool dropCallbackEvent(int count, const char **filenames);
     bool scrollCallbackEvent(double x, double y);
     bool resizeCallbackEvent(int width, int height);
+
+    void loadCollisionObjects();
 
 private:
     std::shared_ptr<nanogui::GLShader> shader;
@@ -81,4 +84,6 @@ private:
     bool is_alive = true;
 
     nanogui::Vector2i default_window_size = nanogui::Vector2i(400, 400);
+
+    vector<CollisionObject*>* collision_objects;
 };

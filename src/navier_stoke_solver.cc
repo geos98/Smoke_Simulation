@@ -5,6 +5,8 @@
 #include <cmath>
 #include "navier_stoke_solver.hh"
 
+#define M_PI 3.1415926
+
 using std::pow;
 using namespace nanogui;
 
