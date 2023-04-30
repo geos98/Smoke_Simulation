@@ -57,7 +57,7 @@ void Smoke::update(double delta_t)
 // }
 // }
 
-void Smoke::generateParticles(const Emittor emittor, int num_particles)
+void Smoke::generateParticles(Emittor emittor, int num_particles)
 {
     // #pragma omp parallel for
     for (int i = 0; i < num_particles; ++i)
