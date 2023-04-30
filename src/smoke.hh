@@ -3,7 +3,9 @@
 #include "emittor.hh"
 #include "navier_stoke_solver.hh"
 #include "smoke_param.hh"
+#include "collision/collisionObject.hh"
 
+using namespace std;
 class Smoke
 {
 
@@ -44,9 +46,11 @@ public:
     // Methods
     // ---------------------------------------------------------
     void generateParticles(Emittor emittor, int num_particles);
-    void update(double delta_t);
+    void update(double delta_t, vector<CollisionObject*> objects, bool ifHideObject);
     void build_spatial_map();
     void update_avg_particle();
+
+    void collide_object(CollisionObject* plane);
 
 private:
     uint64_t hash_position(nanogui::Vector3f pos);

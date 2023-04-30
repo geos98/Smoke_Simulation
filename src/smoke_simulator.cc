@@ -66,11 +66,7 @@ SmokeSimulator::SmokeSimulator(string shader_dir, nanogui::Screen *screen, GLFWw
     camera.configure(camera_info, screen_w, screen_h);
     canonicalCamera.configure(camera_info, screen_w, screen_h);
 
-    this->collision_objects = new vector<CollisionObject*>();
-}
-
-SmokeSimulator::~SmokeSimulator() {
-    if (collision_objects) delete collision_objects;
+    this->collision_objects = vector<CollisionObject*>();
 }
 
 void SmokeSimulator::resetCamera() { camera.copy_placement(canonicalCamera); }
@@ -139,7 +135,7 @@ void SmokeSimulator::draw()
 
     // update particles positions
     smoke.generateParticles(emittor, 500);
-    smoke.update(1 / frames_per_sec);
+    smoke.update(1 / frames_per_sec, collision_objects, sim_param->hide_plane);
     nanogui::MatrixXf positions(4, smoke.particles.size());
     nanogui::MatrixXf colors(4, smoke.particles.size());
     nanogui::MatrixXf sizes(1, smoke.particles.size());
@@ -161,7 +157,7 @@ void SmokeSimulator::draw()
     shader->drawArray(GL_POINTS, 0, smoke.particles.size());
 
     if (!sim_param->hide_plane) {
-        for (CollisionObject* co : *collision_objects) {
+        for (CollisionObject* co : collision_objects) {
             co->render(*shader);
         }
     }
@@ -426,5 +422,5 @@ bool SmokeSimulator::resizeCallbackEvent(int width, int height)
 
 void SmokeSimulator::loadCollisionObject(CollisionObject* object) 
 { 
-    this->collision_objects->push_back(object);
+    this->collision_objects.push_back(object);
 }

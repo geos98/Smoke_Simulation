@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-    CollisionObject* collisionPlaneOne = new Plane(Vector3f(0, 12, 0), Vector3f(0, 1, 0), 0.5);
+    CollisionObject* collisionPlaneOne = new Plane(Vector3f(0, 6, 0), Vector3f(0, 1, 0), 0.5);
     sim->loadCollisionObject(collisionPlaneOne);
 
     double prevTime = 0.0;

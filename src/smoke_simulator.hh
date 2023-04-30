@@ -13,7 +13,7 @@ class SmokeSimulator
 {
 public:
     SmokeSimulator(std::string shader_dir, nanogui::Screen *screen, GLFWwindow *window);
-    ~SmokeSimulator();
+    ~SmokeSimulator() {};
 
     Smoke smoke;
     Emittor emittor;
@@ -92,5 +92,5 @@ private:
     bool is_alive = true;
     nanogui::Vector2i default_window_size = nanogui::Vector2i(400, 400);
 
-    vector<CollisionObject*>* collision_objects;
+    vector<CollisionObject*> collision_objects;
 };

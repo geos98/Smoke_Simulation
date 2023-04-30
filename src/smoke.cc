@@ -1,10 +1,13 @@
 #include <omp.h>
+#include <unordered_set>
 #include "smoke.hh"
+
+#define SURFACE_OFFSET 0.0001
 
 using namespace std;
 using namespace nanogui;
 
-void Smoke::update(double delta_t)
+void Smoke::update(double delta_t, std::vector<CollisionObject*> objects, bool ifHideObject)
 {
     build_spatial_map();   // build grid based on new particle positions
     update_avg_particle(); // calculate average particle attributes for new grid
@@ -30,6 +33,11 @@ void Smoke::update(double delta_t)
                     }
                 }
             }
+        }
+    }
+    if (!ifHideObject) {
+        for (CollisionObject* co : objects) {
+            this->collide_object(co);
         }
     }
 
@@ -121,4 +129,47 @@ uint64_t Smoke::hash_position(nanogui::Vector3f pos)
                 ((iz & (1ULL << i)) << (2 * i + 2));
     }
     return hash;
+}
+
+void Smoke::collide_object(CollisionObject* plane) {
+    std::unordered_set<uint64_t>* hash_set = new std::unordered_set<uint64_t>();
+    MatrixXf plane_positions = plane->return_positions();
+    int64_t max_x = max({ plane_positions.coeff(0,0),plane_positions.coeff(0,1), plane_positions.coeff(0,2), plane_positions.coeff(0,3)});
+    int64_t max_y = max({ plane_positions.coeff(1,0),plane_positions.coeff(1,1), plane_positions.coeff(1,2), plane_positions.coeff(1,3) });
+    int64_t max_z = max({ plane_positions.coeff(2,0),plane_positions.coeff(2,1), plane_positions.coeff(2,2), plane_positions.coeff(2,3) });
+
+    int64_t min_x = min({ plane_positions.coeff(0,0),plane_positions.coeff(0,1), plane_positions.coeff(0,2), plane_positions.coeff(0,3) });
+    int64_t min_y = min({ plane_positions.coeff(1,0),plane_positions.coeff(1,1), plane_positions.coeff(1,2), plane_positions.coeff(1,3) });
+    int64_t min_z = min({ plane_positions.coeff(2,0),plane_positions.coeff(2,1), plane_positions.coeff(2,2), plane_positions.coeff(2,3) });
+
+    for (int64_t x = min_x; x <= max_x; x++) {
+        for (int64_t y = min_y; y <= max_y; y++) {
+            for (int64_t z = min_z; z <= max_z; z++) {
+                hash_set->insert(this->hash_position(Vector3f(x, y, z)));
+            }
+        }
+    }
+
+    for (auto& pair : particle_map)
+    {
+        if (hash_set->find(pair.first) != hash_set->end()) {
+            // do collision
+            for (auto& particle : pair.second) {
+                Vector3f cur_pos = particle->pos;
+                Vector3f plane_to_point = cur_pos - plane->point;
+                if (plane->normal.dot(plane_to_point) < 0.) {
+                    //find t such that (x+ta,y+tb,z+tc), (x, y, z),and (d, e, f) form right angled triangle
+                    //point->(d,e,f)      normal->(a,b,c)       point_mass->(x,y,z)
+
+                    double t = (plane->normal.dot(plane->point) - plane->normal.dot(cur_pos)) / (plane->normal.norm() * plane->normal.norm());
+                    Vector3f tangent_pos = cur_pos + t * plane->normal;
+
+                    Vector3f correction = tangent_pos + (plane->normal / plane->normal.norm()) * SURFACE_OFFSET - particle->pos;
+                    particle->pos = particle->pos + correction * (1. - plane->friction);
+                }
+            }
+        }
+    }
+
+    delete hash_set;
 }

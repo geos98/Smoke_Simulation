@@ -13,7 +13,7 @@ public:
         : point(point), normal(normal), friction(friction) {}
 
     void render(GLShader& shader);
-    void collide(list<Particle>& particle);
+    MatrixXf return_positions();
 
     Vector3f point;
     Vector3f normal;
