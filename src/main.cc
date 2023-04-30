@@ -128,7 +128,8 @@ int main(int argc, char **argv)
 
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-    //sim->loadCollisionObjects();
+    CollisionObject* collisionPlaneOne = new Plane(Vector3f(0, 12, 0), Vector3f(0, 1, 0), 0.5);
+    sim->loadCollisionObject(collisionPlaneOne);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -149,5 +150,6 @@ int main(int argc, char **argv)
     }
 
     delete screen;
+    delete collisionPlaneOne;
     return 0;
 }

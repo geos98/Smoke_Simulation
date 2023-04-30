@@ -17,5 +17,5 @@ public:
     nanogui::Vector3f init_velocity;
     nanogui::Vector4f init_color;
 
-    Particle emit() const;
+    Particle emit(SmokeParameter *sp) const;
 };

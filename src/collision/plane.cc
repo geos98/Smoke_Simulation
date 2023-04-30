@@ -26,12 +26,12 @@ void Plane::collide(list<Particle>& particle) {
 }
 
 void Plane::render(GLShader& shader) {
-	nanogui::Color color(0.7f, 0.7f, 0.7f, 1.0f);
+	nanogui::Color color(0.5f, 0.5f, 0.5f, 1.0f);
 
-	Vector3f sPoint(point.x, point.y, point.z);
-	Vector3f sNormal(normal.x, normal.y, normal.z);
-	Vector3f sParallel(normal.y - normal.z, normal.z - normal.x,
-		normal.x - normal.y);
+	Vector3f sPoint(point[0], point[1], point[2]);
+	Vector3f sNormal(normal[0], normal[1], normal[2]);
+	Vector3f sParallel(normal[1] - normal[2], normal[2] - normal[0],
+		normal[0] - normal[1]);
 	sParallel.normalize();
 	Vector3f sCross = sNormal.cross(sParallel);
 
