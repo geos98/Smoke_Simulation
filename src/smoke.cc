@@ -4,6 +4,7 @@
 
 #define SURFACE_OFFSET 0.05
 #define Y_AXIS_OFFSET 1.5
+#define Y_REBOUNCE_MULTIPLIER -0.05
 
 using namespace std;
 using namespace nanogui;
@@ -12,12 +13,6 @@ void Smoke::update(double delta_t, std::vector<CollisionObject*> objects, bool i
 {
     build_spatial_map();   // build grid based on new particle positions
     update_avg_particle(); // calculate average particle attributes for new grid
-
-    if (!ifHideObject) {
-        for (CollisionObject* co : objects) {
-            this->collide_object(co);
-        }
-    }
 
     int layer = smoke_param->two_layers ? 2 : 1;
     for (auto &pair : particle_map)
@@ -41,6 +36,12 @@ void Smoke::update(double delta_t, std::vector<CollisionObject*> objects, bool i
                     }
                 }
             }
+        }
+    }
+
+    if (!ifHideObject) {
+        for (CollisionObject* co : objects) {
+            this->collide_object(co);
         }
     }
 
@@ -175,7 +176,11 @@ void Smoke::collide_object(CollisionObject* plane) {
                     //particle->velocity = -1*particle->velocity;
 
                     particle->pos = particle->pos + Vector3f(0, -(particle->pos[1] - pos[1]) - SURFACE_OFFSET, 0);
-                    particle->velocity = Vector3f(-1 * particle->velocity[0], -1 * particle->velocity[1], -1 * particle->velocity[2]);
+                    //particle->velocity = Vector3f(-1 * particle->velocity[0], -1 * particle->velocity[1], -1 * particle->velocity[2]);
+                    auto v_scale = particle->velocity.norm();
+                    particle->velocity.y() =  particle->velocity.y() * Y_REBOUNCE_MULTIPLIER;
+                    particle->velocity.normalize();
+                    particle->velocity *= v_scale;
                 }
 
             }
