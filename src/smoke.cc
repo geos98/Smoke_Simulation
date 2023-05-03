@@ -149,7 +149,11 @@ void Smoke::collide_object(CollisionObject* plane) {
     for (int64_t x = min_x; x <= max_x; x++) {
         for (int64_t y = min_y; y <= max_y; y++) {
             for (int64_t z = min_z; z <= max_z; z++) {
-                hash_set->insert(this->hash_position(Vector3f(x, y, z)));
+                Vector2f AB = Vector2f(plane_positions.coeff(0, 1), plane_positions.coeff(2, 1)) - Vector2f(plane_positions.coeff(0, 0), plane_positions.coeff(2, 0));
+                Vector2f AD = Vector2f(plane_positions.coeff(0, 3), plane_positions.coeff(2, 3)) - Vector2f(plane_positions.coeff(0, 0), plane_positions.coeff(2, 0));
+                Vector2f AM = Vector2f(x, z) - Vector2f(plane_positions.coeff(0, 0), plane_positions.coeff(2, 0));
+                if ( (AB.dot(AB) > AM.dot(AB)) && (AM.dot(AB) > 0) && (AD.dot(AD) > AM.dot(AD)) && (AM.dot(AD) > 0))
+                    hash_set->insert(this->hash_position(Vector3f(x, y, z)));
             }
         }
     }
